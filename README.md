@@ -1,6 +1,6 @@
 # Coin Catcher
 
-PhonePe Precious Metals themed catcher game. Catch wealth icons for 60 seconds, beat your best score, and climb the leaderboard.
+PhonePe Precious Metals themed catcher game. Catch wealth icons for 30 seconds, beat your best score, and climb the leaderboard.
 
 **Play:** [https://coin-catcher.vercel.app](https://coin-catcher.vercel.app)
 

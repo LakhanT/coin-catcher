@@ -2,12 +2,12 @@ const BRAND = {
     name: "PhonePe",
     product: "PRECIOUS METALS",
     gameTitle: "COIN CATCHER",
-    tagline: "CATCH. INVEST. GROW.",
+    tagline: "CATCH. INVEST. UNLOCK.",
     logo: "assets/logo-phonepe.png",
 };
 
 const CONFIG = {
-    duration: 60,
+    duration: 30,
     basketSpeed: 620,
     spawnStart: 880,
     spawnEnd: 220,
@@ -112,6 +112,15 @@ function storageSetRaw(key, value) {
         /* ignore cookie access */
     }
     return ok;
+}
+
+function storageRemoveRaw(key) {
+    for (const store of stores()) {
+        try { store.removeItem(key); } catch (_err) { /* ignore blocked storage */ }
+    }
+    try {
+        document.cookie = `${encodeURIComponent(key)}=;path=/;max-age=0;SameSite=Lax`;
+    } catch (_err) { /* ignore cookie access */ }
 }
 
 function normalizeScores(rows) {
@@ -274,7 +283,7 @@ class Game {
         this.prevRanks = {};
         this.scoreSaved = false;
         this.sessionLevel = 0;
-        this.playerName = storageGetRaw("coinCatcherPlayerName") || "";
+        this.playerName = "";
 
         this.resetRoundState();
         this.bindUi();
@@ -335,10 +344,7 @@ class Game {
         $("resume-btn").addEventListener("click", () => this.togglePause(false));
         $("pause-home-btn").addEventListener("click", () => {
             this.saveScore();
-            this.mode = "attract";
-            this.sessionLevel = 0;
-            this.resetRoundState();
-            this.showScreen("title");
+            this.goHome();
         });
         $("replay-btn").addEventListener("click", () => {
             this.saveScore();
@@ -346,10 +352,7 @@ class Game {
         });
         $("results-home-btn").addEventListener("click", () => {
             this.saveScore();
-            this.mode = "attract";
-            this.sessionLevel = 0;
-            this.resetRoundState();
-            this.showScreen("title");
+            this.goHome();
         });
         $("results-board-btn").addEventListener("click", () => {
             this.saveScore();
@@ -361,7 +364,7 @@ class Game {
         $("player-name").addEventListener("keydown", (e) => {
             if (e.key === "Enter") this.requestPlay("title");
         });
-        $("player-name").value = this.playerName;
+        $("player-name").value = "";
 
         const persistIfPlaying = () => {
             if (this.mode === "play" || this.mode === "paused" || this.mode === "results") this.saveScore();
@@ -398,11 +401,33 @@ class Game {
             return false;
         }
         this.playerName = name.slice(0, 16);
-        storageSetRaw("coinCatcherPlayerName", this.playerName);
         error.textContent = "";
         error.classList.add("hidden");
         field.classList.remove("invalid");
         return true;
+    }
+
+    releasePlayer() {
+        this.playerName = "";
+        const field = $("player-name");
+        if (field) {
+            field.value = "";
+            field.classList.remove("invalid");
+        }
+        const error = $("name-error");
+        if (error) {
+            error.textContent = "";
+            error.classList.add("hidden");
+        }
+        storageRemoveRaw("coinCatcherPlayerName");
+    }
+
+    goHome() {
+        this.releasePlayer();
+        this.mode = "attract";
+        this.sessionLevel = 0;
+        this.resetRoundState();
+        this.showScreen("title");
     }
 
     requestPlay(from) {
@@ -963,7 +988,6 @@ class Game {
         const previous = this.bestForName(name);
         ScoreStore.upsert(name, this.score);
         this.scoreSaved = true;
-        storageSetRaw("coinCatcherPlayerName", name);
         const stored = this.bestForName(name);
         let message = `Saved ${stored} for ${name}.`;
         if (this.score > previous) message = `New best for ${name}: ${this.score}.`;
