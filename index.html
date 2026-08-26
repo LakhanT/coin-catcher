@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#5f259f">
+    <title>Coin Catcher · PhonePe Precious Metals</title>
+    <link rel="icon" href="assets/icon-payments.png?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=13">
+</head>
+<body data-mode="title">
+    <div class="app">
+        <div class="app-bg" aria-hidden="true"></div>
+        <div class="app-vignette" aria-hidden="true"></div>
+
+        <header class="top-bar">
+            <div class="brand">
+                <img id="brand-logo" src="assets/logo-phonepe.png" alt="PhonePe Precious Metals">
+            </div>
+
+            <div class="title-block">
+                <div class="title-row">
+                    <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                    <h1 id="game-title">COIN CATCHER</h1>
+                    <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                </div>
+                <p id="game-tagline" class="tagline">CATCH. INVEST. GROW.</p>
+            </div>
+
+            <div class="timer-chip" id="timer-chip">
+                <img src="assets/icon-clock.png?v=6" alt="">
+                <div>
+                    <span class="chip-label">TIME LEFT</span>
+                    <span class="timer-value" id="timer-value">60 SEC</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="stage">
+            <div class="playfield" id="playfield">
+                <canvas id="gameCanvas"></canvas>
+                <button id="field-pause" class="icon-btn field-pause" type="button" aria-label="Pause">
+                    <span></span><span></span>
+                </button>
+                <div class="playfield-frame" aria-hidden="true"></div>
+
+                <div id="countdown-overlay" class="play-overlay hidden">
+                    <div class="count-ring">
+                        <span id="countdown-text">3</span>
+                    </div>
+                </div>
+
+                <aside id="live-board" class="live-board" aria-label="Live leaderboard">
+                    <div class="live-board-head">
+                        <img src="assets/logo-phonepe.png" alt="PhonePe">
+                        <div>
+                            <span class="chip-label">LIVE</span>
+                            <strong>Leaderboard</strong>
+                        </div>
+                    </div>
+                    <div id="live-board-list" class="live-board-list"></div>
+                    <p id="live-board-you" class="live-board-you"></p>
+                </aside>
+            </div>
+        </main>
+
+        <footer class="bottom-bar" id="hud-bar">
+            <div class="tip-chip">
+                <img src="assets/icon-tip.png?v=6" alt="">
+                <p id="tip-text">Catch every wealth icon — a miss costs 10 points!</p>
+            </div>
+
+            <div class="controls-cluster">
+                <div id="joystick" class="joystick" role="slider" aria-label="Move basket left and right">
+                    <div class="joystick-base">
+                        <div class="joystick-knob" id="joystick-knob"></div>
+                    </div>
+                    <img class="joystick-art" src="assets/joystick.png?v=6" alt="">
+                </div>
+                <div class="move-hint">
+                    <span class="move-hint-title">Move basket</span>
+                    <span class="move-hint-sub">Joystick · Arrow keys</span>
+                </div>
+            </div>
+
+            <button id="pause-btn" class="ghost-btn" type="button">Pause</button>
+
+            <div class="score-chip">
+                <img src="assets/icon-trophy.png?v=6" alt="">
+                <div>
+                    <span class="chip-label">POINTS</span>
+                    <span class="score-value" id="score-value">0</span>
+                </div>
+            </div>
+        </footer>
+
+        <section id="screen-title" class="screen">
+            <div class="title-shell">
+                <div class="title-banner">
+                    <img class="banner-logo" src="assets/logo-phonepe.png" alt="PhonePe">
+                    <p class="eyebrow" id="brand-product">PRECIOUS METALS</p>
+                </div>
+                <div class="title-hero">
+                    <div class="title-row title-row-lg">
+                        <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                        <h2>COIN CATCHER</h2>
+                        <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                    </div>
+                    <p class="tagline">CATCH. INVEST. GROW.</p>
+                    <ul class="wealth-row" aria-hidden="true">
+                        <li><img src="assets/icon-payments.png?v=7" alt=""><span>Payments</span></li>
+                        <li><img src="assets/icon-invest.png?v=7" alt=""><span>Invest</span></li>
+                        <li><img src="assets/icon-insurance.png?v=7" alt=""><span>Insurance</span></li>
+                        <li><img src="assets/icon-savings.png?v=7" alt=""><span>Savings</span></li>
+                    </ul>
+                    <p class="title-copy">60 seconds on the clock. Catch every wealth icon for +10. Miss one and you lose 10. Same name keeps one best score.</p>
+                    <div class="name-gate">
+                        <label for="player-name">Your name</label>
+                        <input id="player-name" type="text" maxlength="16" placeholder="Enter your name to play" autocomplete="nickname" required>
+                        <p id="name-error" class="name-error hidden"></p>
+                    </div>
+                    <div class="title-actions">
+                        <button id="play-btn" class="gold-btn" type="button">Play</button>
+                        <button id="howto-btn" class="ghost-btn" type="button">How to play</button>
+                        <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-howto" class="screen hidden">
+            <div class="panel howto-panel">
+                <p class="eyebrow">How to play</p>
+                <h2>Catch the wealth icons</h2>
+                <p class="panel-copy">Payments, Investments, Insurance, and Savings are all +10. If one hits the ground, you lose 10. Speed ramps up as you keep playing.</p>
+
+                <div class="howto-grid">
+                    <div class="legend-card">
+                        <h3>Catch these</h3>
+                        <ul>
+                            <li>
+                                <img src="assets/icon-payments.png?v=7" alt="Payments">
+                                <div>
+                                    <strong>Payments</strong>
+                                    <span>+10 points</span>
+                                </div>
+                            </li>
+                            <li>
+                                <img src="assets/icon-invest.png?v=7" alt="Investments">
+                                <div>
+                                    <strong>Investments</strong>
+                                    <span>+10 points</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="legend-card">
+                        <h3>More +10</h3>
+                        <ul>
+                            <li>
+                                <img src="assets/icon-insurance.png?v=7" alt="Insurance">
+                                <div>
+                                    <strong>Insurance</strong>
+                                    <span>+10 points</span>
+                                </div>
+                            </li>
+                            <li>
+                                <img src="assets/icon-savings.png?v=7" alt="Savings">
+                                <div>
+                                    <strong>Savings</strong>
+                                    <span>+10 points</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p class="howto-controls">Use the joystick or the left and right arrow keys. Missing an icon costs 10 points — it does not end the round.</p>
+                <div class="panel-actions">
+                    <button id="howto-back-btn" class="ghost-btn" type="button">Back</button>
+                    <button id="howto-play-btn" class="gold-btn" type="button">Play</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-pause" class="screen hidden">
+            <div class="panel pause-panel">
+                <p class="eyebrow">Paused</p>
+                <h2>Round on hold</h2>
+                <p class="panel-copy">Your score and time are frozen. Resume to keep catching, or quit to the home screen.</p>
+                <div class="panel-actions">
+                    <button id="resume-btn" class="gold-btn" type="button">Resume</button>
+                    <button id="pause-home-btn" class="ghost-btn" type="button">Quit round</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-results" class="screen hidden">
+            <div class="panel results-panel">
+                <p class="eyebrow">Time’s up</p>
+                <h2>Round complete</h2>
+                <div class="final-score">
+                    <img src="assets/icon-trophy.png?v=6" alt="">
+                    <div>
+                        <span class="chip-label">YOUR SCORE</span>
+                        <strong id="final-score">0</strong>
+                    </div>
+                </div>
+                <p id="results-note" class="results-note"></p>
+                <ul class="breakdown" id="breakdown"></ul>
+                <p id="save-status" class="save-status"></p>
+                <div class="panel-actions">
+                    <button id="replay-btn" class="gold-btn" type="button">Play again</button>
+                    <button id="results-board-btn" class="ghost-btn" type="button">Leaderboard</button>
+                    <button id="results-home-btn" class="ghost-btn" type="button">Home</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-leaderboard" class="screen hidden">
+            <div class="panel board-panel">
+                <p class="eyebrow">Top catchers</p>
+                <h2>Leaderboard</h2>
+                <div id="scores-list" class="scores-list"></div>
+                <div class="panel-actions">
+                    <button id="board-back-btn" class="ghost-btn" type="button">Back</button>
+                    <button id="board-play-btn" class="gold-btn" type="button">Play</button>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script src="game.js?v=14"></script>
+</body>
+</html>
