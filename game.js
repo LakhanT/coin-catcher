@@ -24,6 +24,15 @@ const CONFIG = {
     storageKey: "coinCatcherScores",
 };
 
+const SAMPLE_SCORES = [
+    { name: "Aarav", score: 240 },
+    { name: "Priya", score: 195 },
+    { name: "Rohan", score: 160 },
+    { name: "Ananya", score: 125 },
+    { name: "Vikram", score: 90 },
+    { name: "Meera", score: 55 },
+];
+
 function stores() {
     const list = [];
     try { list.push(window.localStorage); } catch (_err) { /* blocked */ }
@@ -125,12 +134,22 @@ function writeStorage(key, value) {
     return storageSetRaw(key, JSON.stringify(value));
 }
 
+function sampleRows() {
+    const base = Date.now() - 86_400_000;
+    return SAMPLE_SCORES.map((row, i) => ({
+        name: row.name,
+        score: row.score,
+        at: base - i * 3_600_000,
+    }));
+}
+
 const ScoreStore = {
     rows: [],
     load() {
         this.rows = normalizeScores([
             ...this.rows,
             ...(readStorage(CONFIG.storageKey) || []),
+            ...sampleRows(),
         ]);
         return this.rows.map((row) => ({ ...row }));
     },
