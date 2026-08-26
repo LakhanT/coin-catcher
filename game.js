@@ -123,20 +123,24 @@ function storageRemoveRaw(key) {
     } catch (_err) { /* ignore cookie access */ }
 }
 
+function newPlayerId() {
+    return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function normalizeScores(rows) {
     const best = new Map();
     for (const row of rows || []) {
         const name = String(row?.name || "").trim();
         if (!name) continue;
-        const id = name.toLowerCase();
+        const id = String(row?.id || "").trim() || `legacy-${name.toLowerCase()}`;
         const score = Number(row.score);
         const pts = Number.isFinite(score) ? score : 0;
         const prev = best.get(id);
         if (!prev || pts > prev.score || (pts === prev.score && (row.at || 0) > (prev.at || 0))) {
-            best.set(id, { name, score: pts, at: row.at || Date.now() });
+            best.set(id, { id, name, score: pts, at: row.at || Date.now() });
         }
     }
-    return [...best.values()].sort((a, b) => b.score - a.score || String(a.name).localeCompare(String(b.name)));
+    return [...best.values()].sort((a, b) => b.score - a.score || (b.at || 0) - (a.at || 0) || String(a.name).localeCompare(String(b.name)));
 }
 
 function writeStorage(key, value) {
@@ -146,6 +150,7 @@ function writeStorage(key, value) {
 function sampleRows() {
     const base = Date.now() - 86_400_000;
     return SAMPLE_SCORES.map((row, i) => ({
+        id: `sample-${row.name.toLowerCase()}`,
         name: row.name,
         score: row.score,
         at: base - i * 3_600_000,
@@ -166,14 +171,14 @@ const ScoreStore = {
         this.rows = normalizeScores(rows);
         return writeStorage(CONFIG.storageKey, this.rows);
     },
-    upsert(name, score) {
+    upsert(name, score, playerId) {
         const clean = String(name || "").trim().slice(0, 16);
-        if (!clean) return false;
+        const id = String(playerId || "").trim();
+        if (!clean || !id) return false;
         const pts = Number(score);
         const value = Number.isFinite(pts) ? Math.max(0, pts) : 0;
         const rows = this.load();
-        const key = clean.toLowerCase();
-        const existing = rows.find((row) => String(row.name).trim().toLowerCase() === key);
+        const existing = rows.find((row) => row.id === id);
         if (existing) {
             if (value > existing.score) {
                 existing.score = value;
@@ -181,7 +186,7 @@ const ScoreStore = {
                 existing.name = clean;
             }
         } else {
-            rows.push({ name: clean, score: value, at: Date.now() });
+            rows.push({ id, name: clean, score: value, at: Date.now() });
         }
         this.rows = normalizeScores(rows);
         writeStorage(CONFIG.storageKey, this.rows);
@@ -284,6 +289,7 @@ class Game {
         this.scoreSaved = false;
         this.sessionLevel = 0;
         this.playerName = "";
+        this.playerId = "";
 
         this.resetRoundState();
         this.bindUi();
@@ -401,6 +407,7 @@ class Game {
             return false;
         }
         this.playerName = name.slice(0, 16);
+        if (!this.playerId) this.playerId = newPlayerId();
         error.textContent = "";
         error.classList.add("hidden");
         field.classList.remove("invalid");
@@ -409,6 +416,7 @@ class Game {
 
     releasePlayer() {
         this.playerName = "";
+        this.playerId = "";
         const field = $("player-name");
         if (field) {
             field.value = "";
@@ -788,7 +796,7 @@ class Game {
 
     boardEntries() {
         const youName = this.currentPlayerName();
-        const youKey = youName.toLowerCase();
+        const youId = this.playerId;
         const overlayLive = ["countdown", "play", "paused"].includes(this.mode);
         const saved = this.loadScores();
         const rows = [];
@@ -797,28 +805,31 @@ class Game {
         for (const row of saved) {
             const name = String(row.name || "").trim();
             if (!name) continue;
-            const me = Boolean(youName) && name.toLowerCase() === youKey;
+            const id = String(row.id || "").trim() || `legacy-${name.toLowerCase()}`;
+            const me = Boolean(youId) && id === youId;
             const savedScore = Number(row.score) || 0;
             const score = me && overlayLive ? Math.max(savedScore, this.score) : savedScore;
             if (me) sawYou = true;
             rows.push({
-                id: me ? "you" : `saved-${name.toLowerCase()}`,
+                id,
                 name,
                 score,
+                at: row.at || 0,
                 me,
             });
         }
 
-        if (youName && overlayLive && !sawYou) {
+        if (youId && youName && overlayLive && !sawYou) {
             rows.push({
-                id: "you",
+                id: youId,
                 name: youName,
                 score: this.score,
+                at: Date.now(),
                 me: true,
             });
         }
 
-        return rows.sort((a, b) => b.score - a.score || String(a.name).localeCompare(String(b.name)));
+        return rows.sort((a, b) => b.score - a.score || (b.at || 0) - (a.at || 0) || String(a.name).localeCompare(String(b.name)));
     }
 
     boardLabel(row) {
@@ -932,7 +943,7 @@ class Game {
 
     renderResults() {
         $("final-score").textContent = this.score;
-        const personal = this.bestForName(this.playerName);
+        const personal = this.bestForPlayer(this.playerId);
         const isBest = this.score >= personal && this.score > 0;
         $("results-note").textContent = isBest
             ? `NEW PERSONAL BEST · ${this.playerName}`
@@ -960,9 +971,10 @@ class Game {
         return scores[0]?.score || 0;
     }
 
-    bestForName(name) {
-        const key = String(name || "").trim().toLowerCase();
-        return this.loadScores().find((row) => String(row.name).trim().toLowerCase() === key)?.score || 0;
+    bestForPlayer(playerId) {
+        const id = String(playerId || "").trim();
+        if (!id) return 0;
+        return this.loadScores().find((row) => row.id === id)?.score || 0;
     }
 
     uniqueScores(rows) {
@@ -975,20 +987,20 @@ class Game {
 
     persistBest() {
         const name = (this.playerName || $("player-name")?.value || "").trim();
-        if (!name) return false;
-        if (this.score <= 0 && this.bestForName(name) > 0) return true;
-        return ScoreStore.upsert(name, this.score);
+        if (!name || !this.playerId) return false;
+        if (this.score <= 0 && this.bestForPlayer(this.playerId) > 0) return true;
+        return ScoreStore.upsert(name, this.score, this.playerId);
     }
 
     saveScore() {
         const typed = $("player-name")?.value?.trim();
         const name = (this.playerName || typed || "").trim().slice(0, 16);
-        if (!name) return false;
+        if (!name || !this.playerId) return false;
         this.playerName = name;
-        const previous = this.bestForName(name);
-        ScoreStore.upsert(name, this.score);
+        const previous = this.bestForPlayer(this.playerId);
+        ScoreStore.upsert(name, this.score, this.playerId);
         this.scoreSaved = true;
-        const stored = this.bestForName(name);
+        const stored = this.bestForPlayer(this.playerId);
         let message = `Saved ${stored} for ${name}.`;
         if (this.score > previous) message = `New best for ${name}: ${this.score}.`;
         else if (previous > this.score) message = `Best for ${name} stays ${previous}.`;
