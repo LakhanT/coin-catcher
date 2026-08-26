@@ -28,7 +28,7 @@ PhonePe Precious Metals themed catcher game. Catch wealth icons for 30 seconds, 
 ## How to play
 
 1. Enter your name and press **Play**.
-2. Move with the joystick, A/D, or arrow keys.
+2. Move by dragging the playfield, or with A/D and arrow keys.
 3. Catch Payments, Investments, Insurance, and Savings for **+10**.
 4. A miss costs **−10**. The round does not end early.
 5. Each new player gets a new leaderboard row, even if the name is already used. **Play again** updates that sitting only.

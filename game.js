@@ -226,57 +226,12 @@ function loadImage(src) {
     });
 }
 
-class Joystick {
-    constructor(root, onAxis) {
-        this.root = root;
-        this.knob = $("joystick-knob");
-        this.onAxis = onAxis;
-        this.pointerId = null;
-        this.axis = 0;
-        this.max = 38;
-
-        this.root.addEventListener("pointerdown", (e) => this.start(e));
-        window.addEventListener("pointermove", (e) => this.move(e));
-        window.addEventListener("pointerup", (e) => this.end(e));
-        window.addEventListener("pointercancel", (e) => this.end(e));
-    }
-
-    start(event) {
-        this.pointerId = event.pointerId;
-        this.root.setPointerCapture?.(event.pointerId);
-        this.move(event);
-    }
-
-    move(event) {
-        if (this.pointerId !== event.pointerId) return;
-        const rect = this.root.getBoundingClientRect();
-        const dx = event.clientX - (rect.left + rect.width / 2);
-        const dy = event.clientY - (rect.top + rect.height / 2);
-        const dist = Math.min(this.max, Math.hypot(dx, dy));
-        const angle = Math.atan2(dy, dx);
-        const x = Math.cos(angle) * dist;
-        const y = Math.sin(angle) * dist;
-        this.knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-        this.axis = clamp(dx / this.max, -1, 1);
-        this.onAxis(this.axis);
-    }
-
-    end(event) {
-        if (this.pointerId !== event.pointerId && event.pointerId !== undefined) return;
-        this.pointerId = null;
-        this.axis = 0;
-        this.knob.style.transform = "translate(-50%, -50%)";
-        this.onAxis(0);
-    }
-}
-
 class Game {
     constructor(images) {
         this.images = images;
         this.canvas = $("gameCanvas");
         this.ctx = this.canvas.getContext("2d");
         this.keys = {};
-        this.axis = 0;
         this.items = [];
         this.popups = [];
         this.particles = [];
@@ -298,10 +253,6 @@ class Game {
         if (window.ResizeObserver) {
             new ResizeObserver(() => this.resize()).observe($("playfield"));
         }
-
-        this.joystick = new Joystick($("joystick"), (axis) => {
-            this.axis = axis;
-        });
 
         this.showScreen("title");
         this.renderBoards();
@@ -665,7 +616,7 @@ class Game {
             return;
         }
 
-        let move = this.axis;
+        let move = 0;
         if (this.keys.ArrowLeft || this.keys.a || this.keys.A) move -= 1;
         if (this.keys.ArrowRight || this.keys.d || this.keys.D) move += 1;
         this.basketX = clamp(this.basketX + move * (CONFIG.basketSpeed * this.scale / this.w) * dt, 0.08, 0.92);

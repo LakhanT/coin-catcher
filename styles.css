@@ -446,47 +446,6 @@ button {
     gap: 14px;
 }
 
-.joystick {
-    position: relative;
-    width: 96px;
-    height: 96px;
-    touch-action: none;
-}
-
-.joystick-base {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 3px solid var(--pp);
-    background: radial-gradient(circle at 50% 36%, #9b6ad4, #5f259f 58%, #3d146e);
-    box-shadow: 0 10px 24px rgba(95, 37, 159, 0.4), inset 0 0 18px rgba(0, 0, 0, 0.2);
-}
-
-.joystick-knob {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle at 30% 25%, #fff, #efe6f8 70%);
-    box-shadow: 0 8px 16px rgba(26, 11, 46, 0.35);
-    border: 3px solid #fff;
-    pointer-events: none;
-}
-
-.joystick-art {
-    position: absolute;
-    right: -6px;
-    bottom: 0;
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
-    pointer-events: none;
-    opacity: 0.95;
-}
-
 .move-hint {
     padding: 12px 18px;
     border-radius: 18px;
@@ -1039,7 +998,7 @@ body[data-mode="paused"] .top-bar .title-block {
 
     .bottom-bar {
         grid-template-columns: 1fr auto;
-        grid-template-areas: "joystick score";
+        grid-template-areas: "score score";
     }
 
     .tip-chip,
@@ -1072,7 +1031,7 @@ body[data-mode="paused"] .top-bar .title-block {
     }
 
     .controls-cluster {
-        grid-area: joystick;
+        display: none;
     }
 
     .score-chip {
@@ -1096,11 +1055,6 @@ body[data-mode="paused"] .top-bar .title-block {
 
     .playfield {
         border-radius: 18px;
-    }
-
-    .joystick {
-        width: 96px;
-        height: 96px;
     }
 
     .wealth-row span {
@@ -1140,11 +1094,6 @@ body[data-mode="paused"] .top-bar .title-block {
     .app {
         padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
         gap: 6px;
-    }
-
-    .joystick {
-        width: 84px;
-        height: 84px;
     }
 
     .title-banner {
