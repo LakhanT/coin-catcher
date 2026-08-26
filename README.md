@@ -2,7 +2,7 @@
 
 PhonePe Precious Metals themed catcher game. Catch wealth icons for 60 seconds, beat your best score, and climb the leaderboard.
 
-**Play:** [https://basketcatcher-six.vercel.app](https://basketcatcher-six.vercel.app)
+**Play:** [https://coin-catcher.vercel.app](https://coin-catcher.vercel.app)
 
 ## How to play
 
