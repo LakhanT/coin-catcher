@@ -4,6 +4,27 @@ PhonePe Precious Metals themed catcher game. Catch wealth icons for 60 seconds, 
 
 **Play:** [https://coin-catcher.vercel.app](https://coin-catcher.vercel.app)
 
+<p align="center">
+  <img src="screenshots/home.jpg" alt="Coin Catcher home screen" width="720">
+</p>
+
+<p align="center">
+  <img src="assets/icon-payments.png" alt="Payments" width="72">
+  <img src="assets/icon-invest.png" alt="Investments" width="72">
+  <img src="assets/icon-insurance.png" alt="Insurance" width="72">
+  <img src="assets/icon-savings.png" alt="Savings" width="72">
+</p>
+
+## Screens
+
+| Home | How to play |
+| --- | --- |
+| ![Home](screenshots/home.jpg) | ![How to play](screenshots/howto.jpg) |
+
+| In game | Leaderboard |
+| --- | --- |
+| ![Play](screenshots/play.jpg) | ![Leaderboard](screenshots/leaderboard.jpg) |
+
 ## How to play
 
 1. Enter your name and press **Play**.
