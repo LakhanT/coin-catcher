@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
     <meta name="theme-color" content="#5f259f">
     <title>Coin Catcher · PhonePe Precious Metals</title>
-    <link rel="icon" href="assets/icon-payments.png?v=7">
+    <link rel="icon" href="assets/icon-gold.png?v=20">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body data-mode="title">
     <div class="app">
         <div class="app-bg" aria-hidden="true"></div>
-        <div class="app-vignette" aria-hidden="true"></div>
 
         <header class="top-bar">
             <div class="brand">
@@ -23,9 +22,9 @@
 
             <div class="title-block">
                 <div class="title-row">
-                    <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                    <img class="title-coin" src="assets/icon-gold.png?v=20" alt="">
                     <h1 id="game-title">COIN CATCHER</h1>
-                    <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                    <img class="title-coin" src="assets/icon-silver.png?v=20" alt="">
                 </div>
                 <p id="game-tagline" class="tagline">CATCH. INVEST. UNLOCK.</p>
             </div>
@@ -70,7 +69,7 @@
         <footer class="bottom-bar" id="hud-bar">
             <div class="tip-chip">
                 <img src="assets/icon-tip.png?v=6" alt="">
-                <p id="tip-text">Catch every wealth icon — a miss costs 10 points!</p>
+                <p id="tip-text">Catch gold, silver, and platinum — a miss costs 10 points!</p>
             </div>
 
             <div class="controls-cluster">
@@ -99,18 +98,26 @@
                 </div>
                 <div class="title-hero">
                     <div class="title-row title-row-lg">
-                        <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                        <img class="title-coin" src="assets/icon-gold.png?v=20" alt="">
                         <h2>COIN CATCHER</h2>
-                        <img class="title-coin" src="assets/icon-payments.png?v=7" alt="">
+                        <img class="title-coin" src="assets/icon-platinum.png?v=20" alt="">
                     </div>
                     <p class="tagline">CATCH. INVEST. UNLOCK.</p>
-                    <ul class="wealth-row" aria-hidden="true">
-                        <li><img src="assets/icon-payments.png?v=7" alt=""><span>Payments</span></li>
-                        <li><img src="assets/icon-invest.png?v=7" alt=""><span>Invest</span></li>
-                        <li><img src="assets/icon-insurance.png?v=7" alt=""><span>Insurance</span></li>
-                        <li><img src="assets/icon-savings.png?v=7" alt=""><span>Savings</span></li>
+                    <ul class="metal-row" aria-hidden="true">
+                        <li>
+                            <img src="assets/icon-gold.png?v=20" alt="">
+                            <span>Gold</span>
+                        </li>
+                        <li>
+                            <img src="assets/icon-silver.png?v=20" alt="">
+                            <span>Silver</span>
+                        </li>
+                        <li>
+                            <img src="assets/icon-platinum.png?v=20" alt="">
+                            <span>Platinum</span>
+                        </li>
                     </ul>
-                    <p class="title-copy">30 seconds on the clock. Catch every wealth icon for +10. Miss one and you lose 10. Each player gets their own score, even if the name is the same.</p>
+                    <p class="title-copy">30 seconds. Catch Gold, Silver, or Platinum for +10. Miss one and you lose 10. Each player gets their own score, even if the name is the same.</p>
                     <div class="name-gate">
                         <label for="player-name">Your name</label>
                         <input id="player-name" type="text" maxlength="16" placeholder="Enter your name to play" autocomplete="nickname" required>
@@ -118,8 +125,10 @@
                     </div>
                     <div class="title-actions">
                         <button id="play-btn" class="gold-btn" type="button">Play</button>
-                        <button id="howto-btn" class="ghost-btn" type="button">How to play</button>
-                        <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard</button>
+                        <div class="secondary-actions">
+                            <button id="howto-btn" class="ghost-btn" type="button">How to play</button>
+                            <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -128,51 +137,51 @@
         <section id="screen-howto" class="screen hidden">
             <div class="panel howto-panel">
                 <p class="eyebrow">How to play</p>
-                <h2>Catch the wealth icons</h2>
-                <p class="panel-copy">Payments, Investments, Insurance, and Savings are all +10. If one hits the ground, you lose 10. Speed ramps up as you keep playing.</p>
+                <h2>Catch the metals</h2>
+                <p class="panel-copy">Gold, Silver, and Platinum are all +10. If one hits the ground, you lose 10. Speed ramps up as you keep playing.</p>
 
                 <div class="howto-grid">
                     <div class="legend-card">
                         <h3>Catch these</h3>
                         <ul>
                             <li>
-                                <img src="assets/icon-payments.png?v=7" alt="Payments">
+                                <img src="assets/icon-gold.png?v=20" alt="Gold">
                                 <div>
-                                    <strong>Payments</strong>
+                                    <strong>Gold</strong>
                                     <span>+10 points</span>
                                 </div>
                             </li>
                             <li>
-                                <img src="assets/icon-invest.png?v=7" alt="Investments">
+                                <img src="assets/icon-silver.png?v=20" alt="Silver">
                                 <div>
-                                    <strong>Investments</strong>
+                                    <strong>Silver</strong>
                                     <span>+10 points</span>
                                 </div>
                             </li>
                         </ul>
                     </div>
                     <div class="legend-card">
-                        <h3>More +10</h3>
+                        <h3>Also +10</h3>
                         <ul>
                             <li>
-                                <img src="assets/icon-insurance.png?v=7" alt="Insurance">
+                                <img src="assets/icon-platinum.png?v=20" alt="Platinum">
                                 <div>
-                                    <strong>Insurance</strong>
+                                    <strong>Platinum</strong>
                                     <span>+10 points</span>
                                 </div>
                             </li>
                             <li>
-                                <img src="assets/icon-savings.png?v=7" alt="Savings">
+                                <img src="assets/icon-gold.png?v=20" alt="Miss">
                                 <div>
-                                    <strong>Savings</strong>
-                                    <span>+10 points</span>
+                                    <strong>Miss</strong>
+                                    <span class="neg">−10 points</span>
                                 </div>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <p class="howto-controls">Drag on the playfield or use the left and right arrow keys. Missing an icon costs 10 points — it does not end the round.</p>
+                <p class="howto-controls">Drag on the playfield or use the left and right arrow keys. Missing a metal costs 10 points — it does not end the round.</p>
                 <div class="panel-actions">
                     <button id="howto-back-btn" class="ghost-btn" type="button">Back</button>
                     <button id="howto-play-btn" class="gold-btn" type="button">Play</button>
@@ -226,6 +235,6 @@
             </div>
         </section>
     </div>
-    <script src="game.js?v=19"></script>
+    <script src="game.js?v=20"></script>
 </body>
 </html>

@@ -196,16 +196,15 @@ const ScoreStore = {
 ScoreStore.load();
 
 const ITEMS = {
-    payments: { id: "payments", label: "Payments", points: 10, src: "assets/icon-payments.png?v=7", size: 108, glow: "#f5c542", trail: "rgba(245, 197, 66, 0.22)", weight: 28, good: true },
-    invest: { id: "invest", label: "Investments", points: 10, src: "assets/icon-invest.png?v=7", size: 118, glow: "#f0c14d", trail: "rgba(240, 193, 77, 0.22)", weight: 26, good: true },
-    insurance: { id: "insurance", label: "Insurance", points: 10, src: "assets/icon-insurance.png?v=7", size: 118, glow: "#7ee0c8", trail: "rgba(126, 224, 200, 0.22)", weight: 24, good: true },
-    savings: { id: "savings", label: "Savings", points: 10, src: "assets/icon-savings.png?v=7", size: 118, glow: "#a5b4fc", trail: "rgba(165, 180, 252, 0.22)", weight: 22, good: true },
+    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=20", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 34, good: true },
+    silver: { id: "silver", label: "Silver", points: 10, src: "assets/icon-silver.png?v=20", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 36, good: true },
+    platinum: { id: "platinum", label: "Platinum", points: 10, src: "assets/icon-platinum.png?v=20", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 30, good: true },
 };
 
 const TIPS = [
-    "Catch every wealth icon — a miss costs 10 points!",
-    "The longer you last, the faster the market moves.",
-    "Payments, investments, insurance, and savings are all +10.",
+    "Catch gold, silver, and platinum — a miss costs 10 points!",
+    "The longer you last, the faster the metals fall.",
+    "Gold, silver, and platinum are all +10.",
     "Stay near the center so you can reach both sides.",
 ];
 
@@ -267,7 +266,7 @@ class Game {
         this.popups = [];
         this.particles = [];
         this.spawnAt = 0;
-        this.stats = { payments: 0, invest: 0, insurance: 0, savings: 0, missed: 0 };
+        this.stats = { gold: 0, silver: 0, platinum: 0, missed: 0 };
         this.basketX = 0.5;
         this.scoreSaved = false;
         this.prevRanks = {};
@@ -518,7 +517,7 @@ class Game {
             roll -= item.weight;
             if (roll <= 0) return ITEMS[item.id];
         }
-        return ITEMS.payments;
+        return ITEMS.gold;
     }
 
     itemOverlaps(x, y, size, ignore) {
@@ -715,7 +714,7 @@ class Game {
     catchItem(item) {
         this.applyScore(CONFIG.catchPoints, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
-        if (this.stats.payments + this.stats.invest + this.stats.insurance + this.stats.savings === 6) {
+        if (this.stats.gold + this.stats.silver + this.stats.platinum === 6) {
             $("tip-text").textContent = TIPS[1];
         }
     }
@@ -901,14 +900,13 @@ class Game {
             : `Nice catch, ${this.playerName}. Best remains ${personal}.`;
 
         const order = [
-            ["payments", "Payments"],
-            ["invest", "Invest"],
-            ["insurance", "Insurance"],
-            ["savings", "Savings"],
+            ["gold", "Gold"],
+            ["silver", "Silver"],
+            ["platinum", "Platinum"],
             ["missed", "Missed"],
         ];
         $("breakdown").innerHTML = order.map(([id, label]) => {
-            const src = id === "missed" ? ITEMS.payments.src : ITEMS[id].src;
+            const src = id === "missed" ? ITEMS.gold.src : ITEMS[id].src;
             return `<li>
                 <img src="${src}" alt="${label}">
                 <b>${this.stats[id]}</b>
@@ -974,9 +972,7 @@ class Game {
     draw() {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.w, this.h);
-        ctx.drawImage(this.images.background, 0, 0, this.w, this.h);
-        ctx.fillStyle = "rgba(47, 16, 80, 0.22)";
-        ctx.fillRect(0, 0, this.w, this.h);
+        this.drawPlayfield();
 
         this.drawLane();
         this.items.forEach((item) => this.drawItem(item));
@@ -992,11 +988,33 @@ class Game {
         this.popups.forEach((p) => {
             ctx.globalAlpha = clamp(p.life * 1.6, 0, 1);
             ctx.fillStyle = p.color;
-            ctx.font = `700 ${18 * this.scale}px Rajdhani, sans-serif`;
+            ctx.font = `700 ${18 * this.scale}px "Plus Jakarta Sans", sans-serif`;
             ctx.textAlign = "center";
             ctx.fillText(p.text, p.x, p.y);
             ctx.globalAlpha = 1;
         });
+    }
+
+    drawPlayfield() {
+        const ctx = this.ctx;
+        const sky = ctx.createLinearGradient(0, 0, 0, this.h);
+        sky.addColorStop(0, "#faf7fd");
+        sky.addColorStop(0.55, "#efe6f8");
+        sky.addColorStop(1, "#e4d6f3");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, this.w, this.h);
+
+        const beam = ctx.createRadialGradient(this.w * 0.5, 0, this.spritePx(20), this.w * 0.5, 0, this.h * 0.62);
+        beam.addColorStop(0, "rgba(95, 37, 159, 0.12)");
+        beam.addColorStop(1, "rgba(95, 37, 159, 0)");
+        ctx.fillStyle = beam;
+        ctx.fillRect(0, 0, this.w, this.h);
+
+        const groundH = this.spritePx(92);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.62)";
+        ctx.fillRect(0, this.h - groundH, this.w, groundH);
+        ctx.fillStyle = "rgba(95, 37, 159, 0.08)";
+        ctx.fillRect(0, this.h - groundH, this.w, this.spritePx(3));
     }
 
     drawLane() {
@@ -1004,7 +1022,7 @@ class Game {
         const basket = this.basketRect();
         const y = basket.y + basket.height * 0.55;
         ctx.save();
-        ctx.strokeStyle = "rgba(95, 37, 159, 0.45)";
+        ctx.strokeStyle = "rgba(95, 37, 159, 0.28)";
         ctx.setLineDash([10 * this.scale, 10 * this.scale]);
         ctx.lineWidth = 2 * this.scale;
         ctx.beginPath();
@@ -1066,7 +1084,6 @@ async function boot() {
     if (heroTitle) heroTitle.textContent = BRAND.gameTitle;
 
     const imageMap = {
-        background: "assets/bg-city.png",
         basket: "assets/basket.png?v=6",
     };
     for (const item of Object.values(ITEMS)) {
