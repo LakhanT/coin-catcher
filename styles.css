@@ -395,6 +395,7 @@ button {
     display: grid;
     place-items: center;
     background: rgba(11, 6, 24, 0.55);
+    z-index: 4;
 }
 
 .start-card {
@@ -456,10 +457,23 @@ body[data-mode="paused"] .move-btn {
     box-shadow: var(--shadow);
 }
 
-#countdown-text {
-    font-size: clamp(3.2rem, 10vw, 5.2rem);
-    color: var(--pp);
+.count-stack {
+    text-align: center;
+}
+
+.count-ready {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: clamp(1.2rem, 4vw, 1.7rem);
     font-weight: 800;
+}
+
+#countdown-text {
+    display: block;
+    font-size: clamp(4rem, 14vw, 6.4rem);
+    color: #fff;
+    font-weight: 800;
+    line-height: 1;
     animation: popIn 0.35s ease;
 }
 
@@ -630,6 +644,25 @@ body[data-mode="paused"] .move-btn {
     padding: 8px 24px 24px;
 }
 
+.open-cluster {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto 14px;
+}
+
+.open-cluster img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.open-cluster .open-basket {
+    width: 92px;
+    height: 72px;
+}
+
 .eyebrow {
     margin: 0 0 8px;
     color: var(--gold-2);
@@ -642,6 +675,10 @@ body[data-mode="paused"] .move-btn {
 .title-hero h2,
 .panel h2 {
     color: #fff;
+}
+
+.title-hero h2 {
+    font-size: clamp(1.55rem, 5vw, 2.2rem);
 }
 
 .title-row-lg h2 {
@@ -978,6 +1015,111 @@ body[data-mode="paused"] .move-btn {
     box-shadow: 0 0 0 4px rgba(217, 48, 37, 0.12);
 }
 
+.details-privacy {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+.point-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 30%;
+    z-index: 5;
+    width: min(240px, 72%);
+    padding: 16px 14px 14px;
+    border-radius: 18px;
+    background: #fff;
+    color: #1a0d33;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(8, 2, 20, 0.45);
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    transform: translateX(-50%);
+}
+
+.point-toast img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.point-toast strong {
+    font-size: 0.95rem;
+    color: #1a0d33;
+}
+
+.toast-pts {
+    color: #15803d;
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+.toast-pts.miss {
+    color: #dc2626;
+}
+
+.you-scored {
+    margin: 16px 0 4px;
+    color: #fff;
+    font-size: clamp(1.15rem, 3vw, 1.45rem);
+    font-weight: 800;
+}
+
+.you-scored strong {
+    color: var(--gold-2);
+}
+
+.end-stats {
+    list-style: none;
+    margin: 16px 0 8px;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+    text-align: left;
+}
+
+.end-stats li {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--pp-line);
+}
+
+.end-stats span {
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.end-stats strong {
+    display: block;
+    color: #fff;
+    font-size: 1.15rem;
+}
+
+.end-stats em {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-style: normal;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.end-trophy {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 12px;
+    object-fit: contain;
+}
+
 .name-error {
     margin: 0;
     min-height: 1.2em;
@@ -1062,6 +1204,7 @@ body[data-mode="paused"] .move-btn {
 }
 
 body[data-mode="title"] .live-board,
+body[data-mode="details"] .live-board,
 body[data-mode="message"] .live-board,
 body[data-mode="howto"] .live-board,
 body[data-mode="results"] .live-board,
@@ -1070,11 +1213,13 @@ body[data-mode="leaderboard"] .live-board {
 }
 
 body[data-mode="title"] .top-bar,
+body[data-mode="details"] .top-bar,
 body[data-mode="message"] .top-bar,
 body[data-mode="howto"] .top-bar,
 body[data-mode="results"] .top-bar,
 body[data-mode="leaderboard"] .top-bar,
 body[data-mode="title"] .bottom-bar,
+body[data-mode="details"] .bottom-bar,
 body[data-mode="message"] .bottom-bar,
 body[data-mode="howto"] .bottom-bar,
 body[data-mode="results"] .bottom-bar,

@@ -196,20 +196,13 @@ const ScoreStore = {
 ScoreStore.load();
 
 const ITEMS = {
-    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=21", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 28, good: true },
-    silver: { id: "silver", label: "Silver", points: 10, src: "assets/icon-silver.png?v=21", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 26, good: true },
-    platinum: { id: "platinum", label: "Platinum", points: 10, src: "assets/icon-platinum.png?v=21", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 24, good: true },
+    gold: { id: "gold", label: "Gold / Silver / Platinum", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 28, good: true },
+    silver: { id: "silver", label: "Gold / Silver / Platinum", points: 10, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 26, good: true },
+    platinum: { id: "platinum", label: "Gold / Silver / Platinum", points: 10, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 24, good: true },
     rd: { id: "rd", label: "Daily RD", points: 10, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 22, good: true },
     insurance: { id: "insurance", label: "Insurance", points: 10, src: "assets/icon-insurance.png?v=7", size: 100, glow: "#c4b5fd", trail: "rgba(196, 181, 253, 0.22)", weight: 22, good: true },
-    sip: { id: "sip", label: "Daily SIP", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 22, good: true },
+    sip: { id: "sip", label: "Daily SIP - Mutual Funds", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 22, good: true },
 };
-
-const TIPS = [
-    "Don’t miss — a dropped product costs 10 points!",
-    "Each catch adds to your micro-savings score.",
-    "Gold, silver, platinum, RDs, insurance, and SIPs are all +10.",
-    "Move the basket left or right to catch.",
-];
 
 function $(id) {
     return document.getElementById(id);
@@ -246,8 +239,12 @@ class Game {
         this.scoreSaved = false;
         this.sessionLevel = 0;
         this.playerName = "";
+        this.playerEmail = "";
         this.playerId = "";
         this.holdDir = 0;
+        this.basketGlow = 0;
+        this.missMarks = [];
+        this.toastTimer = 0;
 
         this.resetRoundState();
         this.bindUi();
@@ -274,6 +271,9 @@ class Game {
         this.basketX = 0.5;
         this.scoreSaved = false;
         this.prevRanks = {};
+        this.basketGlow = 0;
+        this.missMarks = [];
+        this.hidePointToast();
         const saveStatus = $("save-status");
         if (saveStatus) saveStatus.textContent = "";
         this.syncHud();
@@ -291,21 +291,13 @@ class Game {
             this.keys[e.key] = false;
         });
 
-        $("play-btn").addEventListener("click", () => this.requestPlay("title"));
-        $("howto-btn").addEventListener("click", () => {
-            this.fromScreen = "title";
-            this.showScreen("howto");
-        });
-        $("message-back-btn").addEventListener("click", () => this.showScreen("title"));
+        $("play-btn").addEventListener("click", () => this.showScreen("details"));
+        $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
+        $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
-        $("howto-back-btn").addEventListener("click", () => this.showScreen(this.fromScreen === "title" ? "title" : "message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
         this.bindHold($("move-left"), -1);
         this.bindHold($("move-right"), 1);
-        $("leaderboard-btn").addEventListener("click", () => {
-            this.fromScreen = "title";
-            this.showScreen("leaderboard");
-        });
         $("pause-btn").addEventListener("click", () => this.togglePause());
         $("field-pause").addEventListener("click", () => this.togglePause());
         $("resume-btn").addEventListener("click", () => this.togglePause(false));
@@ -321,17 +313,14 @@ class Game {
             this.saveScore();
             this.goHome();
         });
-        $("results-board-btn").addEventListener("click", () => {
-            this.saveScore();
-            this.fromScreen = "results";
-            this.showScreen("leaderboard");
-        });
-        $("board-back-btn").addEventListener("click", () => this.showScreen(this.fromScreen || "title"));
-        $("board-play-btn").addEventListener("click", () => this.requestPlay("leaderboard"));
         $("player-name").addEventListener("keydown", (e) => {
-            if (e.key === "Enter") this.requestPlay("title");
+            if (e.key === "Enter") $("player-email").focus();
+        });
+        $("player-email").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") this.requestPlay("details");
         });
         $("player-name").value = "";
+        $("player-email").value = "";
 
         const persistIfPlaying = () => {
             if (this.mode === "play" || this.mode === "paused" || this.mode === "results") this.saveScore();
@@ -358,31 +347,45 @@ class Game {
 
     ensureName() {
         const field = $("player-name");
+        const emailField = $("player-email");
         const error = $("name-error");
         const name = field.value.trim();
-        if (!name) {
-            this.showScreen("title");
-            error.textContent = "Enter your name to start the round.";
+        const email = emailField.value.trim();
+        const invalid = (msg, el) => {
+            this.showScreen("details");
+            error.textContent = msg;
             error.classList.remove("hidden");
-            field.classList.add("invalid");
-            field.focus();
+            el.classList.add("invalid");
+            el.focus();
             return false;
+        };
+        field.classList.remove("invalid");
+        emailField.classList.remove("invalid");
+        if (!name) return invalid("Enter your name to continue.", field);
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return invalid("Enter a valid email address.", emailField);
         }
         this.playerName = name.slice(0, 16);
+        this.playerEmail = email.slice(0, 64);
         if (!this.playerId) this.playerId = newPlayerId();
         error.textContent = "";
         error.classList.add("hidden");
-        field.classList.remove("invalid");
         return true;
     }
 
     releasePlayer() {
         this.playerName = "";
+        this.playerEmail = "";
         this.playerId = "";
         const field = $("player-name");
         if (field) {
             field.value = "";
             field.classList.remove("invalid");
+        }
+        const emailField = $("player-email");
+        if (emailField) {
+            emailField.value = "";
+            emailField.classList.remove("invalid");
         }
         const error = $("name-error");
         if (error) {
@@ -417,17 +420,21 @@ class Game {
     }
 
     requestPlay(from) {
-        if (!this.ensureName()) return;
-        if (from === "howto") {
-            this.beginCountdown();
+        if (from === "details" && !this.ensureName()) return;
+        if ((from === "message" || from === "howto") && !this.playerName && !this.ensureName()) return;
+        if (from === "title") {
+            this.showScreen("details");
+            return;
+        }
+        if (from === "details") {
+            this.showScreen("message");
             return;
         }
         if (from === "message") {
-            this.fromScreen = "message";
             this.showScreen("howto");
             return;
         }
-        this.showScreen("message");
+        this.beginCountdown();
     }
 
     showScreen(name) {
@@ -438,11 +445,7 @@ class Game {
         const mode = name === "pause" ? "paused" : name;
         document.body.dataset.mode = mode;
 
-        if (name === "title" || name === "howto" || name === "message") this.mode = "attract";
-        if (name === "leaderboard") {
-            try { this.persistBest(); } catch (_err) { /* ignore */ }
-            this.renderBoards();
-        }
+        if (name === "title" || name === "howto" || name === "message" || name === "details") this.mode = "attract";
         if (name === "howto") storageSetRaw("coinCatcherHowToSeen", "1");
     }
 
@@ -452,12 +455,18 @@ class Game {
         this.mode = "countdown";
         this.renderBoards();
         this.showScreenPlayChrome();
+        $("start-overlay")?.classList.add("hidden");
         const overlay = $("countdown-overlay");
         const text = $("countdown-text");
+        if (!overlay || !text) {
+            this.showStartCue();
+            return;
+        }
         overlay.classList.remove("hidden");
-        const beats = ["3", "2", "1", "GO"];
+        const beats = ["3", "2", "1", "0"];
         let i = 0;
         const tick = () => {
+            if (this.mode !== "countdown") return;
             text.textContent = beats[i];
             text.style.animation = "none";
             text.offsetHeight;
@@ -677,6 +686,7 @@ class Game {
 
         if (this.mode !== "play") {
             this.updatePopups(dt);
+            this.updateMarks(dt);
             return;
         }
 
@@ -701,6 +711,7 @@ class Game {
         this.updateItems(dt, true);
         this.updatePopups(dt);
         this.updateParticles(dt);
+        this.updateMarks(dt);
         this.syncHud();
     }
 
@@ -790,26 +801,41 @@ class Game {
     catchItem(item) {
         this.applyScore(CONFIG.catchPoints, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
-        if (this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip === 6) {
-            $("tip-text").textContent = TIPS[1];
-        }
+        this.basketGlow = 0.55;
+        this.showPointToast(item, true);
     }
 
     missItem(item) {
         this.stats.missed += 1;
-        this.applyScore(CONFIG.missPoints, item.x + item.size / 2, this.h - 24 * this.scale, "#ff5d7a", false);
-        $("tip-text").textContent = TIPS[0];
+        const x = item.x + item.size / 2;
+        const y = this.h - this.spritePx(28);
+        this.applyScore(CONFIG.missPoints, x, y, "#ff5d7a", false);
+        this.missMarks.push({ x, y, life: 0.7 });
+        this.showPointToast(item, false);
+    }
+
+    showPointToast(item, caught) {
+        const toast = $("point-toast");
+        const icon = $("toast-icon");
+        const name = $("toast-name");
+        const pts = $("toast-pts");
+        if (!toast || !icon || !name || !pts) return;
+        icon.src = item.def.src;
+        name.textContent = item.def.label;
+        pts.textContent = caught ? "+10 Points" : "−10 Points";
+        pts.classList.toggle("miss", !caught);
+        toast.classList.remove("hidden");
+        window.clearTimeout(this.toastTimer);
+        this.toastTimer = window.setTimeout(() => this.hidePointToast(), 1100);
+    }
+
+    hidePointToast() {
+        window.clearTimeout(this.toastTimer);
+        $("point-toast")?.classList.add("hidden");
     }
 
     applyScore(points, x, y, glow, good) {
         this.score = Math.max(0, this.score + points);
-        this.popups.push({
-            x,
-            y,
-            text: points > 0 ? `+${points}` : `${points}`,
-            color: points > 0 ? "#5dffb2" : "#ff5d7a",
-            life: 0.8,
-        });
         this.burst(x, y, glow, good);
         this.syncHud();
         try { this.persistBest(); } catch (_err) { /* never block scoring */ }
@@ -950,6 +976,14 @@ class Game {
         });
     }
 
+    updateMarks(dt) {
+        this.basketGlow = Math.max(0, this.basketGlow - dt);
+        this.missMarks = this.missMarks.filter((mark) => {
+            mark.life -= dt;
+            return mark.life > 0;
+        });
+    }
+
     endRound() {
         if (this.mode === "results") return;
         this.mode = "results";
@@ -968,31 +1002,16 @@ class Game {
     }
 
     renderResults() {
-        $("final-score").textContent = this.score;
+        const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip;
         const personal = this.bestForPlayer(this.playerId);
         const isBest = this.score >= personal && this.score > 0;
-        const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip;
-        $("results-note").textContent = isBest
-            ? `NEW PERSONAL BEST · ${this.playerName}`
-            : `${caught} products caught · ${this.stats.missed} missed`;
-
-        const order = [
-            ["gold", "Gold"],
-            ["silver", "Silver"],
-            ["platinum", "Platinum"],
-            ["rd", "Daily RD"],
-            ["insurance", "Insurance"],
-            ["sip", "Daily SIP"],
-            ["missed", "Missed"],
-        ];
-        $("breakdown").innerHTML = order.map(([id, label]) => {
-            const src = id === "missed" ? ITEMS.gold.src : ITEMS[id].src;
-            return `<li>
-                <img src="${src}" alt="${label}">
-                <b>${this.stats[id]}</b>
-                <span>${label}</span>
-            </li>`;
-        }).join("");
+        if ($("final-score")) $("final-score").textContent = this.score;
+        if ($("caught-count")) $("caught-count").textContent = caught;
+        if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
+        if ($("total-count")) $("total-count").textContent = this.score;
+        if ($("results-note")) {
+            $("results-note").textContent = isBest ? `NEW PERSONAL BEST · ${this.playerName}` : "";
+        }
     }
 
     bestScore() {
@@ -1043,10 +1062,12 @@ class Game {
     }
 
     syncHud() {
-        const seconds = Math.ceil(this.timeLeft);
-        $("timer-value").textContent = `${seconds} SEC`;
-        $("score-value").textContent = this.score;
-        $("timer-chip").classList.toggle("urgent", this.mode === "play" && seconds <= 10);
+        const seconds = Math.max(0, Math.ceil(this.timeLeft));
+        const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const ss = String(seconds % 60).padStart(2, "0");
+        if ($("timer-value")) $("timer-value").textContent = `${mm}:${ss}`;
+        if ($("score-value")) $("score-value").textContent = this.score;
+        $("timer-chip")?.classList.toggle("urgent", this.mode === "play" && seconds <= 10);
     }
 
     draw() {
@@ -1062,6 +1083,7 @@ class Game {
 
         this.drawLane();
         this.items.forEach((item) => this.drawItem(item));
+        this.drawMissMarks();
         this.drawBasket();
         this.particles.forEach((p) => {
             ctx.globalAlpha = clamp(p.life * 2, 0, 1);
@@ -1149,7 +1171,35 @@ class Game {
 
     drawBasket() {
         const { x, y, width, height } = this.basketRect();
-        this.ctx.drawImage(this.images.basket, x, y, width, height);
+        const ctx = this.ctx;
+        if (this.basketGlow > 0) {
+            ctx.save();
+            ctx.shadowColor = "rgba(240, 193, 77, 0.95)";
+            ctx.shadowBlur = (28 + this.basketGlow * 48) * this.scale;
+            ctx.drawImage(this.images.basket, x, y, width, height);
+            ctx.restore();
+        }
+        ctx.drawImage(this.images.basket, x, y, width, height);
+    }
+
+    drawMissMarks() {
+        const ctx = this.ctx;
+        this.missMarks.forEach((mark) => {
+            const alpha = clamp(mark.life * 1.8, 0, 1);
+            const size = this.spritePx(22);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = "#ff5d7a";
+            ctx.lineWidth = 5 * this.scale;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(mark.x - size, mark.y - size);
+            ctx.lineTo(mark.x + size, mark.y + size);
+            ctx.moveTo(mark.x + size, mark.y - size);
+            ctx.lineTo(mark.x - size, mark.y + size);
+            ctx.stroke();
+            ctx.restore();
+        });
     }
 
     loop(ts) {

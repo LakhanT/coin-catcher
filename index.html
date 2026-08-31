@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
     <meta name="theme-color" content="#14082a">
     <title>Coin Catcher · PhonePe Precious Metals</title>
-    <link rel="icon" href="assets/icon-gold.png?v=21">
+    <link rel="icon" href="assets/icon-gold.png?v=24">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=22">
+    <link rel="stylesheet" href="styles.css?v=25">
 </head>
 <body data-mode="title">
     <div class="app">
@@ -20,17 +20,13 @@
             <div class="brand">
                 <img id="brand-logo" src="assets/logo-phonepe.png" alt="PhonePe Precious Metals">
             </div>
-
             <div class="timer-chip" id="timer-chip">
-                <img src="assets/icon-clock.png?v=6" alt="">
                 <div>
                     <span class="chip-label">TIME</span>
-                    <span class="timer-value" id="timer-value">30 SEC</span>
+                    <span class="timer-value" id="timer-value">00:30</span>
                 </div>
             </div>
-
             <div class="score-chip">
-                <img src="assets/icon-trophy.png?v=6" alt="">
                 <div>
                     <span class="chip-label">SCORE</span>
                     <span class="score-value" id="score-value">0</span>
@@ -49,7 +45,8 @@
                 <div class="playfield-frame" aria-hidden="true"></div>
 
                 <div id="countdown-overlay" class="play-overlay hidden">
-                    <div class="count-ring">
+                    <div class="count-stack">
+                        <p class="count-ready">Get Ready!</p>
                         <span id="countdown-text">3</span>
                     </div>
                 </div>
@@ -61,61 +58,61 @@
                     </div>
                 </div>
 
-                <aside id="live-board" class="live-board" aria-label="Live leaderboard">
-                    <div class="live-board-head">
-                        <img src="assets/logo-phonepe.png" alt="PhonePe">
-                        <div>
-                            <span class="chip-label">LIVE</span>
-                            <strong>Leaderboard</strong>
-                        </div>
-                    </div>
-                    <div id="live-board-list" class="live-board-list"></div>
-                    <p id="live-board-you" class="live-board-you"></p>
-                </aside>
+                <div id="point-toast" class="point-toast hidden">
+                    <img id="toast-icon" src="assets/icon-gold.png?v=24" alt="">
+                    <strong id="toast-name">Gold / Silver / Platinum</strong>
+                    <span id="toast-pts" class="toast-pts">+10 Points</span>
+                </div>
             </div>
         </main>
 
         <footer class="bottom-bar" id="hud-bar">
-            <div class="tip-chip">
-                <img src="assets/icon-tip.png?v=6" alt="">
-                <p id="tip-text">Catch micro-saving products. Don’t let them drop!</p>
-            </div>
             <button id="pause-btn" class="ghost-btn" type="button">Pause</button>
         </footer>
 
         <section id="screen-title" class="screen">
-            <div class="title-shell">
+            <div class="title-shell open-shell">
                 <div class="title-banner">
                     <img class="banner-logo" src="assets/logo-phonepe.png" alt="PhonePe">
                     <p class="eyebrow" id="brand-product">PRECIOUS METALS</p>
                 </div>
                 <div class="title-hero">
+                    <div class="open-cluster" aria-hidden="true">
+                        <img src="assets/icon-savings.png?v=7" alt="">
+                        <img src="assets/icon-gold.png?v=24" alt="">
+                        <img class="open-basket" src="assets/basket.png?v=6" alt="">
+                        <img src="assets/icon-insurance.png?v=7" alt="">
+                        <img src="assets/icon-invest.png?v=7" alt="">
+                    </div>
                     <h2 id="game-title">Big Wealth Starts Small!</h2>
                     <p id="game-tagline" class="title-copy">Catch micro-saving products. Build macro wealth.</p>
-                    <ul class="metal-row" aria-hidden="true">
-                        <li><img src="assets/icon-gold.png?v=21" alt=""><span>Gold</span></li>
-                        <li><img src="assets/icon-silver.png?v=21" alt=""><span>Silver</span></li>
-                        <li><img src="assets/icon-platinum.png?v=21" alt=""><span>Platinum</span></li>
-                    </ul>
-                    <div class="name-gate">
-                        <label for="player-name">Your name</label>
-                        <input id="player-name" type="text" maxlength="16" placeholder="Enter your name to play" autocomplete="nickname" required>
-                        <p id="name-error" class="name-error hidden"></p>
-                    </div>
                     <div class="title-actions">
                         <button id="play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
-                        <div class="secondary-actions">
-                            <button id="howto-btn" class="ghost-btn" type="button">How to Play</button>
-                            <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard</button>
-                        </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-details" class="screen hidden">
+            <div class="panel details-panel">
+                <h2>Let’s get started!</h2>
+                <div class="name-gate">
+                    <label for="player-name">Your Name</label>
+                    <input id="player-name" type="text" maxlength="16" placeholder="Your Name" autocomplete="nickname" required>
+                    <label for="player-email">Email Address</label>
+                    <input id="player-email" type="email" maxlength="64" placeholder="Email Address" autocomplete="email" required>
+                    <p id="name-error" class="name-error hidden"></p>
+                    <p class="details-privacy">We’ll only use this to send your game summary.</p>
+                </div>
+                <div class="panel-actions">
+                    <button id="details-back-btn" class="ghost-btn" type="button">Back</button>
+                    <button id="details-continue-btn" class="gold-btn" type="button">Continue →</button>
                 </div>
             </div>
         </section>
 
         <section id="screen-message" class="screen hidden">
             <div class="panel message-panel">
-                <p class="eyebrow">Before you play</p>
                 <h2>Catch Your Way to Financial Freedom!</h2>
                 <p class="panel-copy">Financial barriers are broken. Start investing with small, bite-sized amounts.</p>
                 <ul class="product-tags">
@@ -127,7 +124,7 @@
                         </div>
                     </li>
                     <li>
-                        <img src="assets/icon-gold.png?v=21" alt="">
+                        <img src="assets/icon-gold.png?v=24" alt="">
                         <div>
                             <strong>Gold / Silver / Platinum</strong>
                             <span>Start with ₹10</span>
@@ -149,7 +146,6 @@
                     </li>
                 </ul>
                 <div class="panel-actions">
-                    <button id="message-back-btn" class="ghost-btn" type="button">Back</button>
                     <button id="message-go-btn" class="gold-btn" type="button">Got It! Let’s Go →</button>
                 </div>
             </div>
@@ -157,7 +153,6 @@
 
         <section id="screen-howto" class="screen hidden">
             <div class="panel howto-panel">
-                <p class="eyebrow">Instructions</p>
                 <h2>How to Play</h2>
                 <ul class="howto-steps">
                     <li>
@@ -190,7 +185,6 @@
                     </li>
                 </ul>
                 <div class="panel-actions">
-                    <button id="howto-back-btn" class="ghost-btn" type="button">Back</button>
                     <button id="howto-play-btn" class="gold-btn" type="button">Ready, Set, Catch! →</button>
                 </div>
             </div>
@@ -203,46 +197,49 @@
                 <p class="panel-copy">Your score and time are frozen. Resume to keep catching, or quit to the home screen.</p>
                 <div class="panel-actions">
                     <button id="resume-btn" class="gold-btn" type="button">Resume</button>
-                    <button id="pause-home-btn" class="ghost-btn" type="button">Quit round</button>
+                    <button id="pause-home-btn" class="ghost-btn" type="button">Home</button>
                 </div>
             </div>
         </section>
 
         <section id="screen-results" class="screen hidden">
             <div class="panel results-panel">
-                <p class="eyebrow">End game</p>
+                <img class="end-trophy" src="assets/icon-trophy.png?v=6" alt="">
                 <h2>Portfolio Master!</h2>
                 <p class="panel-copy">Proof that starting small pays off big. Break financial barriers every day with PhonePe’s micro saving products!</p>
-                <div class="final-score">
-                    <img src="assets/icon-trophy.png?v=6" alt="">
-                    <div>
-                        <span class="chip-label">TOTAL SCORE</span>
-                        <strong id="final-score">0</strong>
-                    </div>
-                </div>
+                <p class="you-scored">You Scored <strong id="final-score">0</strong></p>
+                <ul class="end-stats">
+                    <li>
+                        <span>⭐</span>
+                        <div>
+                            <strong id="caught-count">0</strong>
+                            <em>Products Caught</em>
+                        </div>
+                    </li>
+                    <li>
+                        <span>❌</span>
+                        <div>
+                            <strong id="missed-count">0</strong>
+                            <em>Products Missed</em>
+                        </div>
+                    </li>
+                    <li>
+                        <span>🏆</span>
+                        <div>
+                            <strong id="total-count">0</strong>
+                            <em>Total Score</em>
+                        </div>
+                    </li>
+                </ul>
                 <p id="results-note" class="results-note"></p>
-                <ul class="breakdown" id="breakdown"></ul>
                 <p id="save-status" class="save-status"></p>
                 <div class="panel-actions">
                     <button id="replay-btn" class="gold-btn" type="button">Play Again 🔄</button>
-                    <button id="results-board-btn" class="ghost-btn" type="button">Leaderboard</button>
                     <button id="results-home-btn" class="ghost-btn" type="button">Home</button>
                 </div>
             </div>
         </section>
-
-        <section id="screen-leaderboard" class="screen hidden">
-            <div class="panel board-panel">
-                <p class="eyebrow">Top catchers</p>
-                <h2>Leaderboard</h2>
-                <div id="scores-list" class="scores-list"></div>
-                <div class="panel-actions">
-                    <button id="board-back-btn" class="ghost-btn" type="button">Back</button>
-                    <button id="board-play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
-                </div>
-            </div>
-        </section>
     </div>
-    <script src="game.js?v=23"></script>
+    <script src="game.js?v=25"></script>
 </body>
 </html>
