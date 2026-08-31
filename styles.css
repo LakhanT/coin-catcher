@@ -115,6 +115,9 @@ button {
     height: 40px;
     object-fit: contain;
     object-position: left center;
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 12px;
 }
 
 .title-block {
@@ -147,7 +150,7 @@ button {
 
 .tagline {
     margin: 6px 0 0;
-    color: var(--pp);
+    color: var(--gold-2);
     letter-spacing: 0.18em;
     font-size: 0.68rem;
     font-weight: 800;
@@ -158,9 +161,9 @@ button {
 .tip-chip,
 .move-hint,
 .live-board {
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--pp-line);
+    background: rgba(26, 13, 51, 0.94);
+    color: #fff;
+    border: 1px solid rgba(255, 224, 138, 0.28);
     box-shadow: var(--shadow);
 }
 
@@ -194,7 +197,7 @@ button {
     display: block;
     font-size: 0.62rem;
     letter-spacing: 0.12em;
-    color: var(--muted);
+    color: var(--gold-2);
     font-weight: 800;
 }
 
@@ -202,7 +205,7 @@ button {
 .score-value {
     display: block;
     font-size: 1.05rem;
-    color: var(--pp);
+    color: #fff;
     font-weight: 800;
 }
 
@@ -288,12 +291,15 @@ button {
     height: 26px;
     object-fit: contain;
     object-position: left center;
+    background: #fff;
+    padding: 3px 6px;
+    border-radius: 8px;
 }
 
 .live-board-head strong {
     display: block;
     font-size: 0.78rem;
-    color: var(--pp-deep);
+    color: #fff;
 }
 
 .live-board-list {
@@ -337,7 +343,7 @@ button {
 }
 
 .live-row .rank {
-    color: var(--pp);
+    color: var(--gold-2);
     font-size: 0.72rem;
     font-weight: 800;
 }
@@ -356,7 +362,7 @@ button {
 
 .live-row .pts {
     text-align: right;
-    color: var(--pp-deep);
+    color: var(--gold-2);
     font-size: 0.75rem;
     font-weight: 800;
 }
@@ -364,7 +370,7 @@ button {
 .live-board-you {
     margin: 8px 0 0;
     min-height: 1.1em;
-    color: var(--pp);
+    color: var(--gold-2);
     font-size: 0.72rem;
     font-weight: 800;
 }
@@ -478,7 +484,7 @@ body[data-mode="paused"] .move-btn {
 
 .tip-chip p {
     margin: 0;
-    color: var(--muted);
+    color: #fff;
     font-weight: 600;
     line-height: 1.3;
 }
@@ -504,7 +510,7 @@ body[data-mode="paused"] .move-btn {
 .move-hint-title {
     font-size: 0.82rem;
     font-weight: 800;
-    color: var(--pp-deep);
+    color: #fff;
 }
 
 .move-hint-sub {
@@ -560,7 +566,7 @@ body[data-mode="paused"] .move-btn {
     justify-content: center;
     align-items: flex-start;
     padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
-    background: rgba(11, 6, 24, 0.62);
+    background: rgba(8, 2, 20, 0.82);
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -626,7 +632,7 @@ body[data-mode="paused"] .move-btn {
 
 .eyebrow {
     margin: 0 0 8px;
-    color: var(--pp);
+    color: var(--gold-2);
     letter-spacing: 0.16em;
     font-size: 0.72rem;
     font-weight: 800;
@@ -743,7 +749,7 @@ body[data-mode="paused"] .move-btn {
 .title-copy,
 .panel-copy,
 .howto-controls {
-    color: var(--muted);
+    color: #efe6ff;
     font-size: 0.94rem;
     line-height: 1.5;
     max-width: 480px;
@@ -810,7 +816,7 @@ body[data-mode="paused"] .move-btn {
     font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--pp);
+    color: var(--gold-2);
 }
 
 .legend-card ul {
@@ -840,7 +846,7 @@ body[data-mode="paused"] .move-btn {
 }
 
 .legend-card strong {
-    color: var(--pp-deep);
+    color: #fff;
 }
 
 .legend-card span {
@@ -872,19 +878,19 @@ body[data-mode="paused"] .move-btn {
 }
 
 .final-score .chip-label {
-    color: var(--pp);
+    color: var(--gold-2);
 }
 
 .final-score strong {
     display: block;
     font-size: clamp(2rem, 6vw, 3.1rem);
-    color: var(--pp-deep);
+    color: #fff;
     letter-spacing: -0.03em;
 }
 
 .results-note {
     min-height: 1.4em;
-    color: var(--pp);
+    color: var(--gold-2);
     font-weight: 800;
 }
 
@@ -913,7 +919,7 @@ body[data-mode="paused"] .move-btn {
 
 .breakdown b {
     display: block;
-    color: var(--pp-deep);
+    color: #fff;
     font-size: 1.05rem;
 }
 
@@ -937,7 +943,7 @@ body[data-mode="paused"] .move-btn {
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--pp);
+    color: var(--gold-2);
     font-weight: 800;
     text-align: left;
 }
@@ -1020,14 +1026,16 @@ body[data-mode="paused"] .move-btn {
 }
 
 .score-entry:nth-child(2) {
-    background: #fff8e6;
-    border-color: #f0d78a;
+    background: rgba(240, 193, 77, 0.18);
+    border-color: #f0c14d;
+    color: #fff;
 }
 
 .score-entry.me {
-    border-color: var(--pp);
-    box-shadow: inset 0 0 0 1.5px var(--pp);
-    background: #efe4fb;
+    border-color: var(--gold-2);
+    box-shadow: inset 0 0 0 1.5px rgba(255, 224, 138, 0.7);
+    background: rgba(95, 37, 159, 0.45);
+    color: #fff;
 }
 
 .you-tag {
@@ -1044,7 +1052,7 @@ body[data-mode="paused"] .move-btn {
 }
 
 .score-entry .rank {
-    color: var(--pp);
+    color: var(--gold-2);
     font-weight: 800;
 }
 
