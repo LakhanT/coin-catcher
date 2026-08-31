@@ -1,8 +1,8 @@
 const BRAND = {
     name: "PhonePe",
     product: "PRECIOUS METALS",
-    gameTitle: "COIN CATCHER",
-    tagline: "CATCH. INVEST. UNLOCK.",
+    gameTitle: "Big Wealth Starts Small!",
+    tagline: "Catch micro-saving products. Build macro wealth.",
     logo: "assets/logo-phonepe.png",
 };
 
@@ -196,16 +196,19 @@ const ScoreStore = {
 ScoreStore.load();
 
 const ITEMS = {
-    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=20", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 34, good: true },
-    silver: { id: "silver", label: "Silver", points: 10, src: "assets/icon-silver.png?v=20", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 36, good: true },
-    platinum: { id: "platinum", label: "Platinum", points: 10, src: "assets/icon-platinum.png?v=20", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 30, good: true },
+    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=21", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 28, good: true },
+    silver: { id: "silver", label: "Silver", points: 10, src: "assets/icon-silver.png?v=21", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 26, good: true },
+    platinum: { id: "platinum", label: "Platinum", points: 10, src: "assets/icon-platinum.png?v=21", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 24, good: true },
+    rd: { id: "rd", label: "Daily RD", points: 10, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 22, good: true },
+    insurance: { id: "insurance", label: "Insurance", points: 10, src: "assets/icon-insurance.png?v=7", size: 100, glow: "#c4b5fd", trail: "rgba(196, 181, 253, 0.22)", weight: 22, good: true },
+    sip: { id: "sip", label: "Daily SIP", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 22, good: true },
 };
 
 const TIPS = [
-    "Catch gold, silver, and platinum — a miss costs 10 points!",
-    "The longer you last, the faster the metals fall.",
-    "Gold, silver, and platinum are all +10.",
-    "Stay near the center so you can reach both sides.",
+    "Don’t miss — a dropped product costs 10 points!",
+    "Each catch adds to your micro-savings score.",
+    "Gold, silver, platinum, RDs, insurance, and SIPs are all +10.",
+    "Move the basket left or right to catch.",
 ];
 
 function $(id) {
@@ -244,6 +247,7 @@ class Game {
         this.sessionLevel = 0;
         this.playerName = "";
         this.playerId = "";
+        this.holdDir = 0;
 
         this.resetRoundState();
         this.bindUi();
@@ -266,7 +270,7 @@ class Game {
         this.popups = [];
         this.particles = [];
         this.spawnAt = 0;
-        this.stats = { gold: 0, silver: 0, platinum: 0, missed: 0 };
+        this.stats = { gold: 0, silver: 0, platinum: 0, rd: 0, insurance: 0, sip: 0, missed: 0 };
         this.basketX = 0.5;
         this.scoreSaved = false;
         this.prevRanks = {};
@@ -288,9 +292,16 @@ class Game {
         });
 
         $("play-btn").addEventListener("click", () => this.requestPlay("title"));
-        $("howto-btn").addEventListener("click", () => this.showScreen("howto"));
-        $("howto-back-btn").addEventListener("click", () => this.showScreen("title"));
+        $("howto-btn").addEventListener("click", () => {
+            this.fromScreen = "title";
+            this.showScreen("howto");
+        });
+        $("message-back-btn").addEventListener("click", () => this.showScreen("title"));
+        $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
+        $("howto-back-btn").addEventListener("click", () => this.showScreen(this.fromScreen === "title" ? "title" : "message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
+        this.bindHold($("move-left"), -1);
+        this.bindHold($("move-right"), 1);
         $("leaderboard-btn").addEventListener("click", () => {
             this.fromScreen = "title";
             this.showScreen("leaderboard");
@@ -388,18 +399,34 @@ class Game {
         this.showScreen("title");
     }
 
+    bindHold(btn, dir) {
+        if (!btn) return;
+        const press = (e) => {
+            e.preventDefault();
+            btn.setPointerCapture?.(e.pointerId);
+            this.holdDir = dir;
+        };
+        const release = () => {
+            if (this.holdDir === dir) this.holdDir = 0;
+        };
+        btn.addEventListener("pointerdown", press);
+        btn.addEventListener("pointerup", release);
+        btn.addEventListener("pointercancel", release);
+        btn.addEventListener("pointerleave", release);
+    }
+
     requestPlay(from) {
         if (!this.ensureName()) return;
         if (from === "howto") {
             this.beginCountdown();
             return;
         }
-        const seen = storageGetRaw("coinCatcherHowToSeen") === "1";
-        if (!seen) {
+        if (from === "message") {
+            this.fromScreen = "message";
             this.showScreen("howto");
             return;
         }
-        this.beginCountdown();
+        this.showScreen("message");
     }
 
     showScreen(name) {
@@ -410,7 +437,7 @@ class Game {
         const mode = name === "pause" ? "paused" : name;
         document.body.dataset.mode = mode;
 
-        if (name === "title" || name === "howto") this.mode = "attract";
+        if (name === "title" || name === "howto" || name === "message") this.mode = "attract";
         if (name === "leaderboard") {
             try { this.persistBest(); } catch (_err) { /* ignore */ }
             this.renderBoards();
@@ -440,12 +467,26 @@ class Game {
             } else {
                 setTimeout(() => {
                     overlay.classList.add("hidden");
-                    this.mode = "play";
-                    this.lastTs = performance.now();
+                    this.showStartCue();
                 }, 420);
             }
         };
         tick();
+    }
+
+    showStartCue() {
+        const start = $("start-overlay");
+        if (!start) {
+            this.mode = "play";
+            this.lastTs = performance.now();
+            return;
+        }
+        start.classList.remove("hidden");
+        setTimeout(() => {
+            start.classList.add("hidden");
+            this.mode = "play";
+            this.lastTs = performance.now();
+        }, 1600);
     }
 
     showScreenPlayChrome() {
@@ -615,7 +656,7 @@ class Game {
             return;
         }
 
-        let move = 0;
+        let move = this.holdDir;
         if (this.keys.ArrowLeft || this.keys.a || this.keys.A) move -= 1;
         if (this.keys.ArrowRight || this.keys.d || this.keys.D) move += 1;
         this.basketX = clamp(this.basketX + move * (CONFIG.basketSpeed * this.scale / this.w) * dt, 0.08, 0.92);
@@ -714,7 +755,7 @@ class Game {
     catchItem(item) {
         this.applyScore(CONFIG.catchPoints, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
-        if (this.stats.gold + this.stats.silver + this.stats.platinum === 6) {
+        if (this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip === 6) {
             $("tip-text").textContent = TIPS[1];
         }
     }
@@ -895,14 +936,18 @@ class Game {
         $("final-score").textContent = this.score;
         const personal = this.bestForPlayer(this.playerId);
         const isBest = this.score >= personal && this.score > 0;
+        const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip;
         $("results-note").textContent = isBest
             ? `NEW PERSONAL BEST · ${this.playerName}`
-            : `Nice catch, ${this.playerName}. Best remains ${personal}.`;
+            : `${caught} products caught · ${this.stats.missed} missed`;
 
         const order = [
             ["gold", "Gold"],
             ["silver", "Silver"],
             ["platinum", "Platinum"],
+            ["rd", "Daily RD"],
+            ["insurance", "Insurance"],
+            ["sip", "Daily SIP"],
             ["missed", "Missed"],
         ];
         $("breakdown").innerHTML = order.map(([id, label]) => {
@@ -972,7 +1017,13 @@ class Game {
     draw() {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.w, this.h);
-        this.drawPlayfield();
+        if (this.images.background) {
+            ctx.drawImage(this.images.background, 0, 0, this.w, this.h);
+            ctx.fillStyle = "rgba(20, 8, 42, 0.28)";
+            ctx.fillRect(0, 0, this.w, this.h);
+        } else {
+            this.drawPlayfield();
+        }
 
         this.drawLane();
         this.items.forEach((item) => this.drawItem(item));
@@ -1022,7 +1073,7 @@ class Game {
         const basket = this.basketRect();
         const y = basket.y + basket.height * 0.55;
         ctx.save();
-        ctx.strokeStyle = "rgba(95, 37, 159, 0.28)";
+        ctx.strokeStyle = "rgba(240, 193, 77, 0.45)";
         ctx.setLineDash([10 * this.scale, 10 * this.scale]);
         ctx.lineWidth = 2 * this.scale;
         ctx.beginPath();
@@ -1076,14 +1127,11 @@ class Game {
 }
 
 async function boot() {
-    $("game-title").textContent = BRAND.gameTitle;
-    $("game-tagline").textContent = BRAND.tagline;
     $("brand-product").textContent = BRAND.product;
     $("brand-logo").src = BRAND.logo;
-    const heroTitle = document.querySelector(".title-row-lg h2");
-    if (heroTitle) heroTitle.textContent = BRAND.gameTitle;
 
     const imageMap = {
+        background: "assets/bg-city.png",
         basket: "assets/basket.png?v=6",
     };
     for (const item of Object.values(ITEMS)) {

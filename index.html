@@ -3,37 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-    <meta name="theme-color" content="#5f259f">
+    <meta name="theme-color" content="#14082a">
     <title>Coin Catcher · PhonePe Precious Metals</title>
-    <link rel="icon" href="assets/icon-gold.png?v=20">
+    <link rel="icon" href="assets/icon-gold.png?v=21">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20">
+    <link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body data-mode="title">
     <div class="app">
         <div class="app-bg" aria-hidden="true"></div>
+        <div class="app-vignette" aria-hidden="true"></div>
 
         <header class="top-bar">
             <div class="brand">
                 <img id="brand-logo" src="assets/logo-phonepe.png" alt="PhonePe Precious Metals">
             </div>
 
-            <div class="title-block">
-                <div class="title-row">
-                    <img class="title-coin" src="assets/icon-gold.png?v=20" alt="">
-                    <h1 id="game-title">COIN CATCHER</h1>
-                    <img class="title-coin" src="assets/icon-silver.png?v=20" alt="">
-                </div>
-                <p id="game-tagline" class="tagline">CATCH. INVEST. UNLOCK.</p>
-            </div>
-
             <div class="timer-chip" id="timer-chip">
                 <img src="assets/icon-clock.png?v=6" alt="">
                 <div>
-                    <span class="chip-label">TIME LEFT</span>
+                    <span class="chip-label">TIME</span>
                     <span class="timer-value" id="timer-value">30 SEC</span>
+                </div>
+            </div>
+
+            <div class="score-chip">
+                <img src="assets/icon-trophy.png?v=6" alt="">
+                <div>
+                    <span class="chip-label">SCORE</span>
+                    <span class="score-value" id="score-value">0</span>
                 </div>
             </div>
         </header>
@@ -44,11 +44,20 @@
                 <button id="field-pause" class="icon-btn field-pause" type="button" aria-label="Pause">
                     <span></span><span></span>
                 </button>
+                <button id="move-left" class="move-btn move-left" type="button" aria-label="Move left">‹</button>
+                <button id="move-right" class="move-btn move-right" type="button" aria-label="Move right">›</button>
                 <div class="playfield-frame" aria-hidden="true"></div>
 
                 <div id="countdown-overlay" class="play-overlay hidden">
                     <div class="count-ring">
                         <span id="countdown-text">3</span>
+                    </div>
+                </div>
+
+                <div id="start-overlay" class="play-overlay hidden">
+                    <div class="start-card">
+                        <h2>Ready to stack your wealth?</h2>
+                        <p>Move the basket left or right to catch</p>
                     </div>
                 </div>
 
@@ -69,25 +78,9 @@
         <footer class="bottom-bar" id="hud-bar">
             <div class="tip-chip">
                 <img src="assets/icon-tip.png?v=6" alt="">
-                <p id="tip-text">Catch gold, silver, and platinum — a miss costs 10 points!</p>
+                <p id="tip-text">Catch micro-saving products. Don’t let them drop!</p>
             </div>
-
-            <div class="controls-cluster">
-                <div class="move-hint">
-                    <span class="move-hint-title">Move basket</span>
-                    <span class="move-hint-sub">Drag · Arrow keys</span>
-                </div>
-            </div>
-
             <button id="pause-btn" class="ghost-btn" type="button">Pause</button>
-
-            <div class="score-chip">
-                <img src="assets/icon-trophy.png?v=6" alt="">
-                <div>
-                    <span class="chip-label">POINTS</span>
-                    <span class="score-value" id="score-value">0</span>
-                </div>
-            </div>
         </footer>
 
         <section id="screen-title" class="screen">
@@ -97,36 +90,22 @@
                     <p class="eyebrow" id="brand-product">PRECIOUS METALS</p>
                 </div>
                 <div class="title-hero">
-                    <div class="title-row title-row-lg">
-                        <img class="title-coin" src="assets/icon-gold.png?v=20" alt="">
-                        <h2>COIN CATCHER</h2>
-                        <img class="title-coin" src="assets/icon-platinum.png?v=20" alt="">
-                    </div>
-                    <p class="tagline">CATCH. INVEST. UNLOCK.</p>
+                    <h2 id="game-title">Big Wealth Starts Small!</h2>
+                    <p id="game-tagline" class="title-copy">Catch micro-saving products. Build macro wealth.</p>
                     <ul class="metal-row" aria-hidden="true">
-                        <li>
-                            <img src="assets/icon-gold.png?v=20" alt="">
-                            <span>Gold</span>
-                        </li>
-                        <li>
-                            <img src="assets/icon-silver.png?v=20" alt="">
-                            <span>Silver</span>
-                        </li>
-                        <li>
-                            <img src="assets/icon-platinum.png?v=20" alt="">
-                            <span>Platinum</span>
-                        </li>
+                        <li><img src="assets/icon-gold.png?v=21" alt=""><span>Gold</span></li>
+                        <li><img src="assets/icon-silver.png?v=21" alt=""><span>Silver</span></li>
+                        <li><img src="assets/icon-platinum.png?v=21" alt=""><span>Platinum</span></li>
                     </ul>
-                    <p class="title-copy">30 seconds. Catch Gold, Silver, or Platinum for +10. Miss one and you lose 10. Each player gets their own score, even if the name is the same.</p>
                     <div class="name-gate">
                         <label for="player-name">Your name</label>
                         <input id="player-name" type="text" maxlength="16" placeholder="Enter your name to play" autocomplete="nickname" required>
                         <p id="name-error" class="name-error hidden"></p>
                     </div>
                     <div class="title-actions">
-                        <button id="play-btn" class="gold-btn" type="button">Play</button>
+                        <button id="play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
                         <div class="secondary-actions">
-                            <button id="howto-btn" class="ghost-btn" type="button">How to play</button>
+                            <button id="howto-btn" class="ghost-btn" type="button">How to Play</button>
                             <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard</button>
                         </div>
                     </div>
@@ -134,57 +113,85 @@
             </div>
         </section>
 
+        <section id="screen-message" class="screen hidden">
+            <div class="panel message-panel">
+                <p class="eyebrow">Before you play</p>
+                <h2>Catch Your Way to Financial Freedom!</h2>
+                <p class="panel-copy">Financial barriers are broken. Start investing with small, bite-sized amounts.</p>
+                <ul class="product-tags">
+                    <li>
+                        <img src="assets/icon-savings.png?v=7" alt="">
+                        <div>
+                            <strong>Daily RD</strong>
+                            <span>Start with ₹100</span>
+                        </div>
+                    </li>
+                    <li>
+                        <img src="assets/icon-gold.png?v=21" alt="">
+                        <div>
+                            <strong>Gold / Silver / Platinum</strong>
+                            <span>Start with ₹10</span>
+                        </div>
+                    </li>
+                    <li>
+                        <img src="assets/icon-insurance.png?v=7" alt="">
+                        <div>
+                            <strong>Insurance</strong>
+                            <span>Start with ₹25</span>
+                        </div>
+                    </li>
+                    <li>
+                        <img src="assets/icon-invest.png?v=7" alt="">
+                        <div>
+                            <strong>Daily SIP - Mutual Funds</strong>
+                            <span>Start with ₹10</span>
+                        </div>
+                    </li>
+                </ul>
+                <div class="panel-actions">
+                    <button id="message-back-btn" class="ghost-btn" type="button">Back</button>
+                    <button id="message-go-btn" class="gold-btn" type="button">Got It! Let’s Go →</button>
+                </div>
+            </div>
+        </section>
+
         <section id="screen-howto" class="screen hidden">
             <div class="panel howto-panel">
-                <p class="eyebrow">How to play</p>
-                <h2>Catch the metals</h2>
-                <p class="panel-copy">Gold, Silver, and Platinum are all +10. If one hits the ground, you lose 10. Speed ramps up as you keep playing.</p>
-
-                <div class="howto-grid">
-                    <div class="legend-card">
-                        <h3>Catch these</h3>
-                        <ul>
-                            <li>
-                                <img src="assets/icon-gold.png?v=20" alt="Gold">
-                                <div>
-                                    <strong>Gold</strong>
-                                    <span>+10 points</span>
-                                </div>
-                            </li>
-                            <li>
-                                <img src="assets/icon-silver.png?v=20" alt="Silver">
-                                <div>
-                                    <strong>Silver</strong>
-                                    <span>+10 points</span>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="legend-card">
-                        <h3>Also +10</h3>
-                        <ul>
-                            <li>
-                                <img src="assets/icon-platinum.png?v=20" alt="Platinum">
-                                <div>
-                                    <strong>Platinum</strong>
-                                    <span>+10 points</span>
-                                </div>
-                            </li>
-                            <li>
-                                <img src="assets/icon-gold.png?v=20" alt="Miss">
-                                <div>
-                                    <strong>Miss</strong>
-                                    <span class="neg">−10 points</span>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <p class="howto-controls">Drag on the playfield or use the left and right arrow keys. Missing a metal costs 10 points — it does not end the round.</p>
+                <p class="eyebrow">Instructions</p>
+                <h2>How to Play</h2>
+                <ul class="howto-steps">
+                    <li>
+                        <span class="step-icon" aria-hidden="true">🧺</span>
+                        <div>
+                            <strong>Catch</strong>
+                            <p>Collect gold/silver/platinum coins, RDs, Insurance options and SIPs to score points.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-icon" aria-hidden="true">❌</span>
+                        <div>
+                            <strong>Don’t Miss</strong>
+                            <p>Let a product drop and lose points!</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-icon" aria-hidden="true">⚡</span>
+                        <div>
+                            <strong>Micro-savings Power</strong>
+                            <p>Each catch adds to your score.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-icon" aria-hidden="true">🏆</span>
+                        <div>
+                            <strong>Win</strong>
+                            <p>Break records and climb the leaderboard!</p>
+                        </div>
+                    </li>
+                </ul>
                 <div class="panel-actions">
                     <button id="howto-back-btn" class="ghost-btn" type="button">Back</button>
-                    <button id="howto-play-btn" class="gold-btn" type="button">Play</button>
+                    <button id="howto-play-btn" class="gold-btn" type="button">Ready, Set, Catch! →</button>
                 </div>
             </div>
         </section>
@@ -203,12 +210,13 @@
 
         <section id="screen-results" class="screen hidden">
             <div class="panel results-panel">
-                <p class="eyebrow">Time’s up</p>
-                <h2>Round complete</h2>
+                <p class="eyebrow">End game</p>
+                <h2>Portfolio Master!</h2>
+                <p class="panel-copy">Proof that starting small pays off big. Break financial barriers every day with PhonePe’s micro saving products!</p>
                 <div class="final-score">
                     <img src="assets/icon-trophy.png?v=6" alt="">
                     <div>
-                        <span class="chip-label">YOUR SCORE</span>
+                        <span class="chip-label">TOTAL SCORE</span>
                         <strong id="final-score">0</strong>
                     </div>
                 </div>
@@ -216,7 +224,7 @@
                 <ul class="breakdown" id="breakdown"></ul>
                 <p id="save-status" class="save-status"></p>
                 <div class="panel-actions">
-                    <button id="replay-btn" class="gold-btn" type="button">Play again</button>
+                    <button id="replay-btn" class="gold-btn" type="button">Play Again 🔄</button>
                     <button id="results-board-btn" class="ghost-btn" type="button">Leaderboard</button>
                     <button id="results-home-btn" class="ghost-btn" type="button">Home</button>
                 </div>
@@ -230,11 +238,11 @@
                 <div id="scores-list" class="scores-list"></div>
                 <div class="panel-actions">
                     <button id="board-back-btn" class="ghost-btn" type="button">Back</button>
-                    <button id="board-play-btn" class="gold-btn" type="button">Play</button>
+                    <button id="board-play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
                 </div>
             </div>
         </section>
     </div>
-    <script src="game.js?v=20"></script>
+    <script src="game.js?v=21"></script>
 </body>
 </html>
