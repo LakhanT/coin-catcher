@@ -636,12 +636,33 @@ body[data-mode="paused"] .move-btn {
 }
 
 .title-hero,
+.title-body,
 .panel {
     text-align: center;
 }
 
-.title-hero {
-    padding: 8px 24px 24px;
+.title-body {
+    padding: 8px 24px 0;
+}
+
+.title-pane h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.55rem, 5vw, 2.2rem);
+}
+
+.title-leaderboard-pane .scores-list {
+    margin-top: 14px;
+    max-height: min(38vh, 320px);
+    overflow-y: auto;
+    padding-right: 2px;
+    text-align: left;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pp-mid) transparent;
+}
+
+.title-actions {
+    padding: 0 24px 24px;
 }
 
 .open-cluster {
@@ -807,7 +828,8 @@ body[data-mode="paused"] .move-btn {
     align-items: stretch;
 }
 
-.title-actions .gold-btn {
+.title-actions .gold-btn,
+.title-actions .ghost-btn {
     width: 100%;
     font-size: 1.05rem;
 }
@@ -1137,10 +1159,35 @@ body[data-mode="paused"] .move-btn {
     color: var(--danger);
 }
 
+.leaderboard-panel .scores-list,
+.results-leaderboard .scores-list {
+    max-height: min(42vh, 360px);
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pp-mid) transparent;
+}
+
+.results-leaderboard {
+    margin-top: 18px;
+    text-align: left;
+}
+
+.results-leaderboard h3 {
+    margin: 0 0 10px;
+    color: #fff;
+    font-size: clamp(1.05rem, 2.8vw, 1.35rem);
+    letter-spacing: -0.02em;
+}
+
 .scores-list {
     margin-top: 18px;
     display: grid;
     gap: 8px;
+}
+
+.leaderboard-panel .scores-list {
+    margin-top: 14px;
 }
 
 .scores-header,

@@ -76,19 +76,27 @@
                     <img class="banner-logo" src="assets/logo-phonepe.png" alt="PhonePe">
                     <p class="eyebrow" id="brand-product">PRECIOUS METALS</p>
                 </div>
-                <div class="title-hero">
-                    <div class="open-cluster" aria-hidden="true">
-                        <img src="assets/icon-savings.png?v=7" alt="">
-                        <img src="assets/icon-gold.png?v=24" alt="">
-                        <img class="open-basket" src="assets/basket.png?v=6" alt="">
-                        <img src="assets/icon-insurance.png?v=7" alt="">
-                        <img src="assets/icon-invest.png?v=7" alt="">
+                <div class="title-body">
+                    <div id="title-hero-pane" class="title-pane">
+                        <div class="open-cluster" aria-hidden="true">
+                            <img src="assets/icon-savings.png?v=7" alt="">
+                            <img src="assets/icon-gold.png?v=24" alt="">
+                            <img class="open-basket" src="assets/basket.png?v=6" alt="">
+                            <img src="assets/icon-insurance.png?v=7" alt="">
+                            <img src="assets/icon-invest.png?v=7" alt="">
+                        </div>
+                        <h2 id="game-title">Big Wealth Starts Small!</h2>
+                        <p id="game-tagline" class="title-copy">Catch micro-saving products. Build macro wealth.</p>
                     </div>
-                    <h2 id="game-title">Big Wealth Starts Small!</h2>
-                    <p id="game-tagline" class="title-copy">Catch micro-saving products. Build macro wealth.</p>
-                    <div class="title-actions">
-                        <button id="play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
+                    <div id="title-leaderboard-pane" class="title-pane hidden">
+                        <p class="eyebrow">Top Players</p>
+                        <h2>Leaderboard</h2>
+                        <div id="scores-list" class="scores-list"></div>
                     </div>
+                </div>
+                <div class="title-actions">
+                    <button id="play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
+                    <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard 🏆</button>
                 </div>
             </div>
         </section>
@@ -99,10 +107,10 @@
                 <div class="name-gate">
                     <label for="player-name">Your Name</label>
                     <input id="player-name" type="text" maxlength="16" placeholder="Your Name" autocomplete="nickname" required>
-                    <label for="player-email">Email Address</label>
-                    <input id="player-email" type="email" maxlength="64" placeholder="Email Address" autocomplete="email" required>
+                    <label for="player-phone">Phone Number</label>
+                    <input id="player-phone" type="tel" maxlength="15" placeholder="+91 98765 43210" autocomplete="tel" required>
                     <p id="name-error" class="name-error hidden"></p>
-                    <p class="details-privacy">We’ll only use this to send your game summary.</p>
+                    <p class="details-privacy">We’ll only use this to contact you about your game summary.</p>
                 </div>
                 <div class="panel-actions">
                     <button id="details-back-btn" class="ghost-btn" type="button">Back</button>
@@ -233,6 +241,11 @@
                 </ul>
                 <p id="results-note" class="results-note"></p>
                 <p id="save-status" class="save-status"></p>
+                <div class="results-leaderboard">
+                    <p class="eyebrow">Top Players</p>
+                    <h3>Leaderboard</h3>
+                    <div id="results-scores-list" class="scores-list"></div>
+                </div>
                 <div class="panel-actions">
                     <button id="replay-btn" class="gold-btn" type="button">Play Again 🔄</button>
                     <button id="results-home-btn" class="ghost-btn" type="button">Home</button>

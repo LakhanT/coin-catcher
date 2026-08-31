@@ -7,6 +7,7 @@ const BRAND = {
 };
 
 const CONFIG = {
+    attractRotateDuration: 10,
     duration: 30,
     basketSpeed: 620,
     spawnStart: 880,
@@ -212,6 +213,13 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
+function isValidPhone(phone) {
+    const digits = String(phone || "").replace(/\D/g, "");
+    if (digits.length === 10) return /^[6-9]\d{9}$/.test(digits);
+    if (digits.length === 12 && digits.startsWith("91")) return /^91[6-9]\d{9}$/.test(digits);
+    return false;
+}
+
 function loadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -239,8 +247,12 @@ class Game {
         this.scoreSaved = false;
         this.sessionLevel = 0;
         this.playerName = "";
-        this.playerEmail = "";
+        this.playerPhone = "";
         this.playerId = "";
+        this.currentScreen = "title";
+        this.attractPhase = "hero";
+        this.attractElapsed = 0;
+        this.attractRotating = true;
         this.holdDir = 0;
         this.basketGlow = 0;
         this.missMarks = [];
@@ -291,8 +303,14 @@ class Game {
             this.keys[e.key] = false;
         });
 
-        $("play-btn").addEventListener("click", () => this.showScreen("details"));
-        $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
+        $("play-btn").addEventListener("click", () => this.startRegistration());
+        $("leaderboard-btn")?.addEventListener("click", () => this.toggleTitleLeaderboard());
+        $("details-back-btn").addEventListener("click", () => {
+            this.attractRotating = true;
+            this.attractElapsed = 0;
+            this.attractPhase = "hero";
+            this.showScreen("title");
+        });
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
@@ -314,13 +332,13 @@ class Game {
             this.goHome();
         });
         $("player-name").addEventListener("keydown", (e) => {
-            if (e.key === "Enter") $("player-email").focus();
+            if (e.key === "Enter") $("player-phone").focus();
         });
-        $("player-email").addEventListener("keydown", (e) => {
+        $("player-phone").addEventListener("keydown", (e) => {
             if (e.key === "Enter") this.requestPlay("details");
         });
         $("player-name").value = "";
-        $("player-email").value = "";
+        $("player-phone").value = "";
 
         const persistIfPlaying = () => {
             if (this.mode === "play" || this.mode === "paused" || this.mode === "results") this.saveScore();
@@ -345,12 +363,17 @@ class Game {
         this.basketX = clamp(x, travel.min, travel.max);
     }
 
+    startRegistration() {
+        this.stopAttractRotation();
+        this.showScreen("details");
+    }
+
     ensureName() {
         const field = $("player-name");
-        const emailField = $("player-email");
+        const phoneField = $("player-phone");
         const error = $("name-error");
         const name = field.value.trim();
-        const email = emailField.value.trim();
+        const phone = phoneField.value.trim();
         const invalid = (msg, el) => {
             this.showScreen("details");
             error.textContent = msg;
@@ -360,13 +383,13 @@ class Game {
             return false;
         };
         field.classList.remove("invalid");
-        emailField.classList.remove("invalid");
+        phoneField.classList.remove("invalid");
         if (!name) return invalid("Enter your name to continue.", field);
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return invalid("Enter a valid email address.", emailField);
+        if (!phone || !isValidPhone(phone)) {
+            return invalid("Enter a valid 10-digit phone number.", phoneField);
         }
         this.playerName = name.slice(0, 16);
-        this.playerEmail = email.slice(0, 64);
+        this.playerPhone = phone.slice(0, 15);
         if (!this.playerId) this.playerId = newPlayerId();
         error.textContent = "";
         error.classList.add("hidden");
@@ -375,17 +398,17 @@ class Game {
 
     releasePlayer() {
         this.playerName = "";
-        this.playerEmail = "";
+        this.playerPhone = "";
         this.playerId = "";
         const field = $("player-name");
         if (field) {
             field.value = "";
             field.classList.remove("invalid");
         }
-        const emailField = $("player-email");
-        if (emailField) {
-            emailField.value = "";
-            emailField.classList.remove("invalid");
+        const phoneField = $("player-phone");
+        if (phoneField) {
+            phoneField.value = "";
+            phoneField.classList.remove("invalid");
         }
         const error = $("name-error");
         if (error) {
@@ -400,7 +423,46 @@ class Game {
         this.mode = "attract";
         this.sessionLevel = 0;
         this.resetRoundState();
+        this.attractPhase = "hero";
+        this.attractElapsed = 0;
+        this.attractRotating = true;
         this.showScreen("title");
+    }
+
+    stopAttractRotation() {
+        this.attractRotating = false;
+        this.attractElapsed = 0;
+    }
+
+    setAttractPane(phase, opts = {}) {
+        this.attractPhase = phase;
+        $("title-hero-pane")?.classList.toggle("hidden", phase !== "hero");
+        $("title-leaderboard-pane")?.classList.toggle("hidden", phase !== "leaderboard");
+        if (!opts.fromRotation) this.attractElapsed = 0;
+        this.syncAttractActions();
+    }
+
+    syncAttractActions() {
+        const btn = $("leaderboard-btn");
+        if (!btn) return;
+        btn.textContent = this.attractPhase === "leaderboard" ? "← Back" : "Leaderboard 🏆";
+    }
+
+    toggleTitleLeaderboard() {
+        const next = this.attractPhase === "leaderboard" ? "hero" : "leaderboard";
+        this.setAttractPane(next);
+        if (next === "leaderboard") this.renderBoards();
+    }
+
+    tickAttractRotation(dt) {
+        if (!this.attractRotating || this.mode !== "attract") return;
+        if (this.currentScreen !== "title") return;
+        this.attractElapsed += dt;
+        if (this.attractElapsed < CONFIG.attractRotateDuration) return;
+        this.attractElapsed = 0;
+        const next = this.attractPhase === "hero" ? "leaderboard" : "hero";
+        this.setAttractPane(next, { fromRotation: true });
+        this.renderBoards();
     }
 
     bindHold(btn, dir) {
@@ -437,7 +499,8 @@ class Game {
         this.beginCountdown();
     }
 
-    showScreen(name) {
+    showScreen(name, opts = {}) {
+        this.currentScreen = name;
         document.querySelectorAll(".screen").forEach((el) => el.classList.add("hidden"));
         const screen = $(`screen-${name}`);
         if (screen) screen.classList.remove("hidden");
@@ -445,7 +508,16 @@ class Game {
         const mode = name === "pause" ? "paused" : name;
         document.body.dataset.mode = mode;
 
-        if (name === "title" || name === "howto" || name === "message" || name === "details") this.mode = "attract";
+        if (name === "title" || name === "howto" || name === "message" || name === "details") {
+            this.mode = "attract";
+        }
+        if (name === "title") {
+            this.setAttractPane(this.attractPhase, opts);
+            if (!this.attractRotating) this.attractRotating = true;
+        }
+        if (name === "details" || name === "message" || name === "howto") {
+            this.stopAttractRotation();
+        }
         if (name === "howto") storageSetRaw("coinCatcherHowToSeen", "1");
     }
 
@@ -677,6 +749,7 @@ class Game {
 
     update(dt) {
         if (this.mode === "attract") {
+            this.tickAttractRotation(dt);
             this.roundElapsed = (this.roundElapsed + dt) % 20;
             if (this.items.length < 4) this.spawn();
             this.updateItems(dt, false);
@@ -849,7 +922,7 @@ class Game {
     boardEntries() {
         const youName = this.currentPlayerName();
         const youId = this.playerId;
-        const overlayLive = ["countdown", "play", "paused"].includes(this.mode);
+        const overlayLive = ["countdown", "play", "paused", "results"].includes(this.mode);
         const saved = this.loadScores();
         const rows = [];
         let sawYou = false;
@@ -924,13 +997,9 @@ class Game {
     }
 
     renderLeaderboard(rows = this.boardEntries()) {
-        const list = $("scores-list");
-        if (!list) return;
-        if (!rows.length) {
-            list.innerHTML = `<p class="empty-board">No scores yet. Play a round and save your name.</p>`;
-                return;
-            }
-        list.innerHTML = `
+        const html = !rows.length
+            ? `<p class="empty-board">No scores yet. Play a round and save your name.</p>`
+            : `
             <div class="scores-header"><div>RANK</div><div>PLAYER</div><div>SCORE</div></div>
             ${rows.map((row, i) => `
                 <div class="score-entry${row.me ? " me" : ""}">
@@ -940,6 +1009,9 @@ class Game {
                 </div>
             `).join("")}
         `;
+        for (const list of document.querySelectorAll("#scores-list, #results-scores-list")) {
+            list.innerHTML = html;
+        }
     }
 
     burst(x, y, color, good) {
