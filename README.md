@@ -2,7 +2,7 @@
 
 PhonePe Precious Metals themed catcher game. Catch gold, silver, and platinum for 30 seconds, beat your best score, and climb the leaderboard.
 
-**Play:** [https://coin-catcher.vercel.app](https://coin-catcher.vercel.app)
+**Play:** [https://coin-catcher-main.vercel.app](https://coin-catcher-main.vercel.app)
 
 <p align="center">
   <img src="screenshots/home.jpg" alt="Coin Catcher home screen" width="720">
