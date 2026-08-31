@@ -352,7 +352,8 @@ class Game {
         if (this.mode !== "play") return;
         const rect = this.canvas.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width;
-        this.basketX = clamp(x, 0.08, 0.92);
+        const travel = this.basketTravel();
+        this.basketX = clamp(x, travel.min, travel.max);
     }
 
     ensureName() {
@@ -577,13 +578,14 @@ class Game {
 
     pickSpawnX(size) {
         const gap = this.spritePx(CONFIG.itemGap);
-        const usable = Math.max(1, this.w - size);
-        const laneCount = Math.max(3, Math.floor(this.w / (size + gap)));
-        const laneW = usable / Math.max(1, laneCount - 1);
+        const play = this.itemPlayBounds(size);
+        const span = Math.max(1, play.max - play.min);
+        const laneCount = Math.max(3, Math.floor(span / (size + gap)) + 1);
+        const laneW = span / Math.max(1, laneCount - 1);
         const blocked = new Set();
         for (const item of this.items) {
             if (item.y > item.size * 1.8) continue;
-            blocked.add(clamp(Math.round(item.x / laneW), 0, laneCount - 1));
+            blocked.add(clamp(Math.round((item.x - play.min) / laneW), 0, laneCount - 1));
         }
         const free = [];
         for (let i = 0; i < laneCount; i += 1) {
@@ -596,7 +598,7 @@ class Game {
         }
         for (const lane of lanes) {
             const jitter = (Math.random() - 0.5) * Math.min(this.spritePx(18), laneW * 0.28);
-            const x = clamp(lane * laneW + jitter, 0, usable);
+            const x = clamp(play.min + lane * laneW + jitter, play.min, play.max);
             if (!this.itemOverlaps(x, -size, size)) return x;
         }
         return null;
@@ -626,13 +628,42 @@ class Game {
         return true;
     }
 
-    basketRect() {
+    basketMetrics() {
         const compact = this.spriteScale() < 0.75;
         const width = this.spritePx(compact ? 172 : 248);
         const height = this.spritePx(compact ? 144 : 208);
-        const x = this.basketX * this.w - width / 2;
-        const y = this.h - height - this.spritePx(compact ? 10 : 18);
-        return { x: clamp(x, 0, this.w - width), y, width, height };
+        const inset = width * (compact ? 0.16 : 0.12);
+        const catchW = width * (compact ? 0.68 : 0.76);
+        const margin = this.spritePx(compact ? 24 : 32);
+        const minX = margin;
+        const maxX = Math.max(minX, this.w - width - margin);
+        return { compact, width, height, inset, catchW, margin, minX, maxX };
+    }
+
+    basketTravel() {
+        const m = this.basketMetrics();
+        const min = (m.minX + m.width / 2) / this.w;
+        const max = (m.maxX + m.width / 2) / this.w;
+        return { min, max };
+    }
+
+    itemPlayBounds(size) {
+        const m = this.basketMetrics();
+        const min = m.minX + m.inset;
+        const max = m.maxX + m.inset + m.catchW - size;
+        return { min, max: Math.max(min, max) };
+    }
+
+    clampBasket() {
+        const travel = this.basketTravel();
+        this.basketX = clamp(this.basketX, travel.min, travel.max);
+    }
+
+    basketRect() {
+        const m = this.basketMetrics();
+        const x = clamp(this.basketX * this.w - m.width / 2, m.minX, m.maxX);
+        const y = this.h - m.height - this.spritePx(m.compact ? 10 : 18);
+        return { x, y, width: m.width, height: m.height };
     }
 
     update(dt) {
@@ -659,7 +690,8 @@ class Game {
         let move = this.holdDir;
         if (this.keys.ArrowLeft || this.keys.a || this.keys.A) move -= 1;
         if (this.keys.ArrowRight || this.keys.d || this.keys.D) move += 1;
-        this.basketX = clamp(this.basketX + move * (CONFIG.basketSpeed * this.scale / this.w) * dt, 0.08, 0.92);
+        const travel = this.basketTravel();
+        this.basketX = clamp(this.basketX + move * (CONFIG.basketSpeed * this.scale / this.w) * dt, travel.min, travel.max);
 
         this.spawnAt -= dt * 1000;
         if (this.spawnAt <= 0) {
@@ -674,12 +706,12 @@ class Game {
 
     updateItems(dt, collide) {
         const basket = this.basketRect();
-        const tight = this.spriteScale() < 0.75;
+        const metrics = this.basketMetrics();
         const catchZone = {
-            x: basket.x + basket.width * (tight ? 0.2 : 0.14),
-            y: basket.y + basket.height * (tight ? 0.3 : 0.2),
-            width: basket.width * (tight ? 0.56 : 0.7),
-            height: basket.height * (tight ? 0.3 : 0.4),
+            x: basket.x + metrics.inset,
+            y: basket.y + basket.height * (metrics.compact ? 0.28 : 0.2),
+            width: metrics.catchW,
+            height: basket.height * (metrics.compact ? 0.34 : 0.42),
         };
 
         const accelTime = CONFIG.fallAccelTime;
@@ -691,11 +723,12 @@ class Game {
             item.x += item.vx * dt;
             item.y += item.vy * dt;
             item.rot += item.spin * dt;
-            if (item.x < 0) {
-                item.x = 0;
+            const play = this.itemPlayBounds(item.size);
+            if (item.x < play.min) {
+                item.x = play.min;
                 item.vx = Math.abs(item.vx) * 0.35;
-            } else if (item.x > this.w - item.size) {
-                item.x = this.w - item.size;
+            } else if (item.x > play.max) {
+                item.x = play.max;
                 item.vx = -Math.abs(item.vx) * 0.35;
             }
         });
@@ -739,8 +772,10 @@ class Game {
                     a.y -= dir * push;
                     b.y += dir * push;
                 }
-                a.x = clamp(a.x, 0, this.w - a.size);
-                b.x = clamp(b.x, 0, this.w - b.size);
+                const aPlay = this.itemPlayBounds(a.size);
+                const bPlay = this.itemPlayBounds(b.size);
+                a.x = clamp(a.x, aPlay.min, aPlay.max);
+                b.x = clamp(b.x, bPlay.min, bPlay.max);
             }
         }
     }
