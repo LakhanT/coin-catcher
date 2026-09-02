@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=45">
+    <link rel="stylesheet" href="styles.css?v=46">
 </head>
 <body data-mode="title">
     <div class="app">
@@ -104,10 +104,43 @@
                     <label for="player-phone">Phone Number</label>
                     <input id="player-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210" autocomplete="tel" required>
                     <p id="name-error" class="name-error hidden"></p>
-                    <p class="details-disclaimer">Disclaimer: copy to be confirmed.</p>
                 </div>
                 <div class="panel-actions">
                     <button id="details-continue-btn" class="gold-btn" type="button">Continue →</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-tnc" class="screen hidden">
+            <button id="tnc-back-btn" class="back-tab" type="button">‹ Back</button>
+            <div class="panel tnc-panel">
+                <h2>Terms &amp; Conditions</h2>
+                <p class="tnc-lead">Please read these terms before you start. You must accept them to play.</p>
+                <div class="tnc-scroll" tabindex="0">
+                    <p>By continuing to play, you agree to these Terms &amp; Conditions. You allow PhonePe to use your details for notifying your winning status and coordinating the delivery of the prize you may have won.</p>
+                    <p><strong>Eligibility:</strong> Participation in the game is open to individuals aged 18 years and above.</p>
+                    <p><strong>Purpose of the Game:</strong> This game is an engagement activity organised by PhonePe and is intended purely for entertainment and participant engagement. The game does not constitute, imply or communicate any specific product, service or brand claim by PhonePe.</p>
+                    <p><strong>Scoring &amp; Leaderboard:</strong> The score earned by a participant during the game will be used to determine their position on the leaderboard. The leaderboard will be maintained separately for each day of the event, and winners will be determined based on their final scores at the end of each event day.</p>
+                    <p><strong>Winners:</strong> The Top 10 participants on the leaderboard at the end of each event day will be eligible to receive one Nokia 105 feature phone each. The next 15 participants on the leaderboard will be eligible to receive one PhonePe-branded umbrella each.</p>
+                    <p><strong>Verification:</strong> All winners will be subject to verification by PhonePe. PhonePe reserves the right to disqualify any participant if their participation or score is found to involve cheating, manipulation, use of unauthorised software/tools, multiple or fraudulent entries, or any other activity that PhonePe reasonably believes is contrary to the spirit or rules of the game.</p>
+                    <p><strong>Final Scores:</strong> In case of a tie, PhonePe the person who has scored the high score earlier in the day will be selected.</p>
+                    <p><strong>Prizes:</strong> Prizes are non-transferable, non-exchangeable and cannot be substituted for cash or any other reward. Each eligible winner is entitled to only one prize per event day, unless otherwise specified by PhonePe.</p>
+                    <p><strong>Prize Disclaimer:</strong> The Nokia 105 feature phone is provided on an “as is” basis. PhonePe shall not be responsible for any manufacturing defect, malfunction, damage, warranty claim or after-sales service relating to the device. Any such claims shall be governed by the applicable terms and warranty of the manufacturer. A bill for the device will not be provided.</p>
+                    <p><strong>Prize Availability:</strong> In the event a specified prize is unavailable, PhonePe reserves the right to replace it with another prize of comparable value, at its sole discretion.</p>
+                    <p><strong>Technical Issues:</strong> PhonePe shall not be responsible for any failure, interruption, delay, loss of data, connectivity issue or technical malfunction affecting participation or scores due to circumstances beyond its reasonable control.</p>
+                    <p><strong>Data &amp; Communication:</strong> By participating and providing your details, you consent to PhonePe collecting and using the information provided by you for the purposes of recording your participation, determining and notifying your winning status, verifying eligibility, and coordinating the delivery/collection of any prize you may have won, in accordance with applicable laws and PhonePe’s Privacy Policy.</p>
+                    <p><strong>Photographs &amp; Event Content:</strong> Participants may be photographed or recorded during the event. By participating in the activity, you acknowledge that PhonePe may use such photographs, videos or recordings for legitimate event documentation and/or promotional purposes, subject to applicable law.</p>
+                    <p><strong>Modification / Cancellation:</strong> PhonePe reserves the right to modify, suspend, withdraw or cancel the game, leaderboard, prizes or any part of the activity at any time due to technical, operational, legal or other circumstances beyond its reasonable control.</p>
+                    <p><strong>Decision of PhonePe:</strong> PhonePe’s decision regarding participation, scoring, leaderboard rankings, winner selection, verification and prize distribution shall be final and binding, subject to applicable law.</p>
+                    <p>By tapping <strong>I Agree &amp; Continue</strong>, you confirm that you have read, understood and agreed to these Terms &amp; Conditions.</p>
+                </div>
+                <label class="tnc-check" for="tnc-agree">
+                    <input id="tnc-agree" type="checkbox">
+                    <span>I have read and agree to the Terms &amp; Conditions.</span>
+                </label>
+                <p id="tnc-error" class="name-error hidden">Please accept the Terms &amp; Conditions to continue.</p>
+                <div class="panel-actions">
+                    <button id="tnc-continue-btn" class="gold-btn" type="button" disabled>I Agree &amp; Continue →</button>
                 </div>
             </div>
         </section>
@@ -255,6 +288,6 @@
             </div>
         </section>
     </div>
-    <script src="game.js?v=45"></script>
+    <script src="game.js?v=46"></script>
 </body>
 </html>

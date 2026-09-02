@@ -324,6 +324,7 @@ class Game {
         this.playerName = "";
         this.playerPhone = "";
         this.playerId = "";
+        this.tncAccepted = false;
         this.currentScreen = "title";
         this.attractPhase = "hero";
         this.attractElapsed = 0;
@@ -386,7 +387,10 @@ class Game {
         $("play-btn").addEventListener("click", () => this.startRegistration());
         $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
-        $("message-back-btn").addEventListener("click", () => this.showScreen("details"));
+        $("tnc-back-btn").addEventListener("click", () => this.showScreen("details"));
+        $("tnc-continue-btn").addEventListener("click", () => this.requestPlay("tnc"));
+        $("tnc-agree").addEventListener("change", () => this.syncTncGate());
+        $("message-back-btn").addEventListener("click", () => this.showScreen("tnc"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
         $("howto-back-btn").addEventListener("click", () => this.showScreen("message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
@@ -415,6 +419,7 @@ class Game {
         });
         $("player-name").value = "";
         $("player-phone").value = "";
+        this.syncTncGate(true);
 
         const persistIfPlaying = () => {
             if (this.mode === "play" || this.mode === "paused" || this.mode === "results") this.saveScore();
@@ -493,6 +498,41 @@ class Game {
             error.classList.add("hidden");
         }
         storageRemoveRaw("coinCatcherPlayerName");
+        this.resetTnc();
+    }
+
+    resetTnc() {
+        this.tncAccepted = false;
+        const box = $("tnc-agree");
+        if (box) box.checked = false;
+        this.syncTncGate(true);
+    }
+
+    syncTncGate(silent) {
+        const box = $("tnc-agree");
+        const btn = $("tnc-continue-btn");
+        const error = $("tnc-error");
+        const agreed = Boolean(box?.checked);
+        if (btn) btn.disabled = !agreed;
+        if (error && (silent || agreed)) error.classList.add("hidden");
+    }
+
+    ensureTnc() {
+        const box = $("tnc-agree");
+        const error = $("tnc-error");
+        if (box?.checked) {
+            this.tncAccepted = true;
+            error?.classList.add("hidden");
+            return true;
+        }
+        this.tncAccepted = false;
+        this.showScreen("tnc");
+        if (error) {
+            error.textContent = "Please accept the Terms & Conditions to continue.";
+            error.classList.remove("hidden");
+        }
+        box?.focus();
+        return false;
     }
 
     goHome() {
@@ -538,15 +578,21 @@ class Game {
 
     requestPlay(from) {
         if (from === "details" && !this.ensureName()) return;
-        if ((from === "message" || from === "howto") && !this.playerName && !this.ensureName()) return;
+        if ((from === "tnc" || from === "message" || from === "howto") && !this.playerName && !this.ensureName()) return;
         if (from === "title") {
             this.showScreen("details");
             return;
         }
         if (from === "details") {
+            this.showScreen("tnc");
+            return;
+        }
+        if (from === "tnc") {
+            if (!this.ensureTnc()) return;
             this.showScreen("message");
             return;
         }
+        if ((from === "message" || from === "howto") && !this.tncAccepted && !this.ensureTnc()) return;
         if (from === "message") {
             this.showScreen("howto");
             return;
@@ -563,14 +609,14 @@ class Game {
         const mode = name === "pause" ? "paused" : name;
         document.body.dataset.mode = mode;
 
-        if (name === "title" || name === "howto" || name === "message" || name === "details") {
+        if (name === "title" || name === "howto" || name === "message" || name === "details" || name === "tnc") {
             this.mode = "attract";
         }
         if (name === "title") {
             this.setAttractPane("hero");
             this.attractRotating = false;
         }
-        if (name === "details" || name === "message" || name === "howto") {
+        if (name === "details" || name === "tnc" || name === "message" || name === "howto") {
             this.stopAttractRotation();
         }
         if (name === "howto") storageSetRaw("coinCatcherHowToSeen", "1");

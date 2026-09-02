@@ -581,6 +581,18 @@ body[data-mode="paused"] .move-btn {
     background: var(--pp-deep);
 }
 
+.gold-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.gold-btn:disabled:hover {
+    background: var(--pp);
+    transform: none;
+}
+
 .gold-btn:active,
 .ghost-btn:active {
     transform: translateY(0);
@@ -621,6 +633,7 @@ body[data-mode="paused"] .move-btn {
 }
 
 #screen-details,
+#screen-tnc,
 #screen-message,
 #screen-howto {
     padding-top: max(68px, calc(env(safe-area-inset-top) + 54px));
@@ -1085,14 +1098,65 @@ body[data-mode="paused"] .move-btn {
     box-shadow: 0 0 0 4px rgba(217, 48, 37, 0.12);
 }
 
-.details-privacy,
-.details-disclaimer {
-    margin: 8px 0 0;
+.tnc-panel {
+    text-align: left;
+}
+
+.tnc-lead {
+    margin: 0 0 12px;
     color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.tnc-scroll {
+    max-height: min(42dvh, 380px);
+    overflow-y: auto;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--pp-line);
+    -webkit-overflow-scrolling: touch;
+}
+
+.tnc-scroll p {
+    margin: 0 0 12px;
+    color: #efe6fb;
     font-size: 0.82rem;
     font-weight: 600;
+    line-height: 1.45;
     text-align: left;
-    line-height: 1.4;
+}
+
+.tnc-scroll p:last-child {
+    margin-bottom: 0;
+}
+
+.tnc-scroll strong {
+    color: #fff;
+}
+
+.tnc-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 14px 0 6px;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+}
+
+.tnc-check input {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    accent-color: var(--pp);
+    cursor: pointer;
 }
 
 .point-toast {
@@ -1326,6 +1390,7 @@ body[data-mode="paused"] .move-btn {
 
 body[data-mode="title"] .live-board,
 body[data-mode="details"] .live-board,
+body[data-mode="tnc"] .live-board,
 body[data-mode="message"] .live-board,
 body[data-mode="howto"] .live-board,
 body[data-mode="results"] .live-board,
@@ -1335,12 +1400,14 @@ body[data-mode="leaderboard"] .live-board {
 
 body[data-mode="title"] .top-bar,
 body[data-mode="details"] .top-bar,
+body[data-mode="tnc"] .top-bar,
 body[data-mode="message"] .top-bar,
 body[data-mode="howto"] .top-bar,
 body[data-mode="results"] .top-bar,
 body[data-mode="leaderboard"] .top-bar,
 body[data-mode="title"] .bottom-bar,
 body[data-mode="details"] .bottom-bar,
+body[data-mode="tnc"] .bottom-bar,
 body[data-mode="message"] .bottom-bar,
 body[data-mode="howto"] .bottom-bar,
 body[data-mode="results"] .bottom-bar,
