@@ -20,6 +20,9 @@ const CONFIG = {
     missPoints: -10,
     precisionMin: 0.3,
     precisionMax: 0.9,
+    comboStart: 2,
+    comboHot: 5,
+    comboSuper: 10,
     fallAccelTime: 0.82,
     itemGap: 22,
     mobileSprite: 0.4,
@@ -304,6 +307,7 @@ class Game {
         this.missMarks = [];
         this.toastTimer = 0;
         this.roundStartBest = 0;
+        this.combo = 0;
 
         this.resetRoundState();
         this.bindUi();
@@ -334,6 +338,7 @@ class Game {
         this.prevRanks = {};
         this.basketGlow = 0;
         this.missMarks = [];
+        this.combo = 0;
         this.hidePointToast();
         const saveStatus = $("save-status");
         if (saveStatus) saveStatus.textContent = "";
@@ -942,40 +947,66 @@ class Game {
         return roundScore(CONFIG.precisionMin + (CONFIG.precisionMax - CONFIG.precisionMin) * centered);
     }
 
+    comboBonus(count) {
+        if (count < CONFIG.comboStart) return 0;
+        if (count < CONFIG.comboHot) return roundScore(0.5 * (count - 1));
+        if (count < CONFIG.comboSuper) return roundScore(2 + 0.5 * (count - CONFIG.comboHot));
+        return roundScore(5 + 0.5 * (count - CONFIG.comboSuper));
+    }
+
+    comboLabel(count) {
+        if (count >= CONFIG.comboSuper) return "🔥 SUPER COMBO";
+        if (count >= CONFIG.comboHot) return `COMBO x${count}`;
+        if (count >= CONFIG.comboStart) return `COMBO x${count}`;
+        return "";
+    }
+
     catchItem(item) {
+        this.combo += 1;
         const zone = this.catchMouth();
-        const points = CONFIG.catchPoints + this.catchPrecision(item, zone);
+        const points = CONFIG.catchPoints + this.catchPrecision(item, zone) + this.comboBonus(this.combo);
         this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
         this.basketGlow = 0.55;
-        this.showPointToast(item, true, points);
+        this.showPointToast(item, true, points, this.combo);
     }
 
     missItem(item) {
+        this.combo = 0;
         this.stats.missed += 1;
         const x = item.x + item.size / 2;
         const y = this.h - this.spritePx(28);
         this.applyScore(CONFIG.missPoints, x, y, "#ff5d7a", false);
         this.missMarks.push({ x, y, life: 0.7 });
-        this.showPointToast(item, false, CONFIG.missPoints);
+        this.showPointToast(item, false, CONFIG.missPoints, 0);
     }
 
-    showPointToast(item, caught, points) {
+    showPointToast(item, caught, points, combo) {
         const toast = $("point-toast");
         const icon = $("toast-icon");
         const pts = $("toast-pts");
+        const comboEl = $("toast-combo");
         if (!toast || !icon || !pts) return;
         icon.src = item.def.src;
         pts.textContent = formatDelta(points);
         pts.classList.toggle("miss", !caught);
+        const label = caught ? this.comboLabel(combo || 0) : "";
+        if (comboEl) {
+            comboEl.textContent = label;
+            comboEl.classList.toggle("hidden", !label);
+            comboEl.classList.toggle("super", (combo || 0) >= CONFIG.comboSuper);
+        }
+        toast.classList.toggle("super", caught && (combo || 0) >= CONFIG.comboSuper);
         toast.classList.remove("hidden");
         window.clearTimeout(this.toastTimer);
-        this.toastTimer = window.setTimeout(() => this.hidePointToast(), 1100);
+        this.toastTimer = window.setTimeout(() => this.hidePointToast(), (combo || 0) >= CONFIG.comboSuper ? 1400 : 1100);
     }
 
     hidePointToast() {
         window.clearTimeout(this.toastTimer);
-        $("point-toast")?.classList.add("hidden");
+        const toast = $("point-toast");
+        toast?.classList.add("hidden");
+        toast?.classList.remove("super");
     }
 
     applyScore(points, x, y, glow, good) {

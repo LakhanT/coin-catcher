@@ -1134,6 +1134,24 @@ body[data-mode="paused"] .move-btn {
     color: #dc2626;
 }
 
+.toast-combo {
+    color: #c2410c;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.toast-combo.super,
+.point-toast.super .toast-combo {
+    color: #b45309;
+    font-size: 0.95rem;
+}
+
+.point-toast.super {
+    box-shadow: 0 16px 40px rgba(240, 193, 77, 0.45);
+    outline: 2px solid #f0c14d;
+}
+
 .you-scored {
     margin: 16px 0 4px;
     color: #fff;
