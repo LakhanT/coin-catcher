@@ -9,12 +9,12 @@ const CONFIG = {
     attractRotateDuration: 10,
     duration: 30,
     basketCrossTime: 0.38,
-    spawnStart: 780,
-    spawnEnd: 170,
-    fallTimeStart: 1.6,
-    fallTimeEnd: 0.68,
-    maxItemsStart: 4,
-    maxItemsEnd: 12,
+    spawnStart: 920,
+    spawnEnd: 340,
+    fallTimeStart: 1.15,
+    fallTimeEnd: 0.48,
+    maxItemsStart: 3,
+    maxItemsEnd: 6,
     catchPoints: 10,
     missPoints: -10,
     precisionMin: 0.3,
@@ -226,11 +226,11 @@ const ScoreStore = {
 ScoreStore.load();
 
 const ITEMS = {
-    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 42, good: true },
-    sip: { id: "sip", label: "SIP-MF", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 26, good: true },
+    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 48, good: true },
+    sip: { id: "sip", label: "SIP-MF", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 24, good: true },
     silver: { id: "silver", label: "Silver", points: 5, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 16, good: true },
-    platinum: { id: "platinum", label: "Platinum", points: 50, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 10, good: true },
-    rd: { id: "rd", label: "Daily RD", points: 100, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 6, good: true },
+    platinum: { id: "platinum", label: "Platinum", points: 50, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 8, good: true },
+    rd: { id: "rd", label: "Daily RD", points: 100, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 4, good: true },
 };
 
 function $(id) {
@@ -269,7 +269,7 @@ function isValidPhone(phone) {
 
 function loadImage(src) {
     return new Promise((resolve, reject) => {
-        const img = new Image();
+            const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = reject;
         img.src = src;
@@ -648,14 +648,14 @@ class Game {
         const t = clamp(this.roundElapsed, 0, CONFIG.duration);
         let intensity;
         if (t < 10) {
-            intensity = lerp(0.1, 0.35, t / 10);
+            intensity = lerp(0.22, 0.48, t / 10);
         } else if (t < 20) {
-            intensity = lerp(0.35, 0.62, (t - 10) / 10);
+            intensity = lerp(0.48, 0.74, (t - 10) / 10);
         } else {
-            intensity = lerp(0.62, 0.88, (t - 20) / 10);
+            intensity = lerp(0.74, 0.96, (t - 20) / 10);
         }
-        const session = clamp(this.sessionLevel * 0.08, 0, 0.18);
-        return clamp(intensity + session, 0.1, 0.95);
+        const session = clamp(this.sessionLevel * 0.1, 0, 0.22);
+        return clamp(intensity + session, 0.22, 0.98);
     }
 
     spawnInterval() {
