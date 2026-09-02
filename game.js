@@ -10,11 +10,11 @@ const CONFIG = {
     attractRotateDuration: 10,
     duration: 30,
     basketCrossTime: 0.4,
-    spawnStart: 500,
-    spawnEnd: 120,
-    fallTimeStart: 1.2,
-    fallTimeEnd: 0.56,
-    maxItemsStart: 6,
+    spawnStart: 740,
+    spawnEnd: 95,
+    fallTimeStart: 1.55,
+    fallTimeEnd: 0.48,
+    maxItemsStart: 4,
     maxItemsEnd: 16,
     catchPoints: 10,
     missPoints: -10,
@@ -236,6 +236,10 @@ function $(id) {
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, t) {
+    return a + (b - a) * clamp(t, 0, 1);
 }
 
 function isValidPhone(phone) {
@@ -621,25 +625,29 @@ class Game {
     }
 
     difficulty() {
-        const t = clamp(this.roundElapsed / CONFIG.duration, 0, 1);
-        const ramp = t * t;
-        let surge = 0;
-        if (t >= 0.4) surge += 0.28;
-        if (t >= 0.75) surge += 0.38;
-        const session = clamp(this.sessionLevel * 0.38, 0, 1.7);
-        return clamp(0.42 + ramp * 0.72 + surge + session, 0.42, 2.2);
+        const t = clamp(this.roundElapsed, 0, CONFIG.duration);
+        let intensity;
+        if (t < 10) {
+            intensity = lerp(0.12, 0.4, t / 10);
+        } else if (t < 20) {
+            intensity = lerp(0.4, 0.72, (t - 10) / 10);
+        } else {
+            intensity = lerp(0.72, 1, (t - 20) / 10);
+        }
+        const session = clamp(this.sessionLevel * 0.1, 0, 0.22);
+        return clamp(intensity + session, 0.12, 1.12);
     }
 
     spawnInterval() {
-        const d = this.difficulty();
-        return CONFIG.spawnStart + (CONFIG.spawnEnd - CONFIG.spawnStart) * Math.min(d, 1);
+        const d = clamp(this.difficulty(), 0, 1);
+        return CONFIG.spawnStart + (CONFIG.spawnEnd - CONFIG.spawnStart) * d;
     }
 
     fallSpeed() {
         const cssH = this.h / (this.scale || 1);
-        const d = this.difficulty();
-        const time = CONFIG.fallTimeStart + (CONFIG.fallTimeEnd - CONFIG.fallTimeStart) * Math.min(d, 1);
-        return cssH / Math.max(0.4, time);
+        const d = clamp(this.difficulty(), 0, 1);
+        const time = CONFIG.fallTimeStart + (CONFIG.fallTimeEnd - CONFIG.fallTimeStart) * d;
+        return cssH / Math.max(0.38, time);
     }
 
     basketMoveSpeed() {
@@ -649,7 +657,7 @@ class Game {
     }
 
     maxItemsNow() {
-        const d = Math.min(this.difficulty(), 1);
+        const d = clamp(this.difficulty(), 0, 1);
         return Math.round(CONFIG.maxItemsStart + (CONFIG.maxItemsEnd - CONFIG.maxItemsStart) * d);
     }
 
