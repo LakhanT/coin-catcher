@@ -330,6 +330,8 @@ class Game {
         this.attractElapsed = 0;
         this.attractRotating = false;
         this.holdDir = 0;
+        this.moveLeft = false;
+        this.moveRight = false;
         this.basketGlow = 0;
         this.missMarks = [];
         this.toastTimer = 0;
@@ -366,6 +368,7 @@ class Game {
         this.basketGlow = 0;
         this.missMarks = [];
         this.combo = 0;
+        this.clearMoveInput();
         this.hidePointToast();
         const saveStatus = $("save-status");
         if (saveStatus) saveStatus.textContent = "";
@@ -374,14 +377,14 @@ class Game {
     }
 
     bindUi() {
-        document.addEventListener("keydown", (e) => {
-            this.keys[e.key] = true;
-            if (["ArrowLeft", "ArrowRight", " "].includes(e.key)) e.preventDefault();
-            if (e.key === "Escape") this.togglePause();
-            if ((e.key === "p" || e.key === "P") && this.mode === "play") this.togglePause();
+        document.addEventListener("keydown", (e) => this.onKey(e, true));
+        document.addEventListener("keyup", (e) => this.onKey(e, false));
+        window.addEventListener("blur", () => this.clearMoveInput());
+        window.addEventListener("pointerup", () => {
+            this.holdDir = 0;
         });
-        document.addEventListener("keyup", (e) => {
-            this.keys[e.key] = false;
+        window.addEventListener("pointercancel", () => {
+            this.holdDir = 0;
         });
 
         $("play-btn").addEventListener("click", () => this.startRegistration());
@@ -434,6 +437,30 @@ class Game {
         this.canvas.addEventListener("pointermove", (e) => {
             if (e.buttons) this.nudgeFromPointer(e);
         });
+    }
+
+    isTypingTarget(el) {
+        const tag = String(el?.tagName || "").toLowerCase();
+        return tag === "input" || tag === "textarea" || tag === "select" || Boolean(el?.isContentEditable);
+    }
+
+    clearMoveInput() {
+        this.keys = {};
+        this.holdDir = 0;
+        this.moveLeft = false;
+        this.moveRight = false;
+    }
+
+    onKey(event, down) {
+        if (this.isTypingTarget(event.target)) return;
+        if (event.code === "ArrowLeft" || event.code === "KeyA") this.moveLeft = down;
+        if (event.code === "ArrowRight" || event.code === "KeyD") this.moveRight = down;
+        if (!down) return;
+        if (["ArrowLeft", "ArrowRight", "Space"].includes(event.code) && this.mode === "play") {
+            event.preventDefault();
+        }
+        if (event.key === "Escape") this.togglePause();
+        if ((event.key === "p" || event.key === "P") && this.mode === "play") this.togglePause();
     }
 
     nudgeFromPointer(event) {
@@ -573,7 +600,7 @@ class Game {
         btn.addEventListener("pointerdown", press);
         btn.addEventListener("pointerup", release);
         btn.addEventListener("pointercancel", release);
-        btn.addEventListener("pointerleave", release);
+        btn.addEventListener("lostpointercapture", release);
     }
 
     requestPlay(from) {
@@ -661,6 +688,7 @@ class Game {
     showStartCue() {
         const start = $("start-overlay");
         if (!start) {
+            this.clearMoveInput();
             this.mode = "play";
             this.lastTs = performance.now();
             return;
@@ -668,6 +696,7 @@ class Game {
         start.classList.remove("hidden");
         setTimeout(() => {
             start.classList.add("hidden");
+            this.clearMoveInput();
             this.mode = "play";
             this.lastTs = performance.now();
         }, 1600);
@@ -908,8 +937,8 @@ class Game {
         }
 
         let move = this.holdDir;
-        if (this.keys.ArrowLeft || this.keys.a || this.keys.A) move -= 1;
-        if (this.keys.ArrowRight || this.keys.d || this.keys.D) move += 1;
+        if (this.moveLeft) move -= 1;
+        if (this.moveRight) move += 1;
         const travel = this.basketTravel();
         this.basketX = clamp(this.basketX + move * this.basketMoveSpeed() * dt, travel.min, travel.max);
 
