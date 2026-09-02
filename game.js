@@ -9,16 +9,16 @@ const BRAND = {
 const CONFIG = {
     attractRotateDuration: 10,
     duration: 30,
-    basketCrossTime: 0.4,
-    spawnStart: 740,
-    spawnEnd: 95,
-    fallTimeStart: 1.55,
-    fallTimeEnd: 0.48,
-    maxItemsStart: 4,
-    maxItemsEnd: 16,
+    basketCrossTime: 0.36,
+    spawnStart: 860,
+    spawnEnd: 240,
+    fallTimeStart: 1.75,
+    fallTimeEnd: 0.85,
+    maxItemsStart: 3,
+    maxItemsEnd: 10,
     catchPoints: 10,
     missPoints: -10,
-    fallAccelTime: 0.72,
+    fallAccelTime: 0.9,
     itemGap: 22,
     mobileSprite: 0.4,
     tabletSprite: 0.62,
@@ -628,14 +628,14 @@ class Game {
         const t = clamp(this.roundElapsed, 0, CONFIG.duration);
         let intensity;
         if (t < 10) {
-            intensity = lerp(0.12, 0.4, t / 10);
+            intensity = lerp(0.08, 0.3, t / 10);
         } else if (t < 20) {
-            intensity = lerp(0.4, 0.72, (t - 10) / 10);
+            intensity = lerp(0.3, 0.55, (t - 10) / 10);
         } else {
-            intensity = lerp(0.72, 1, (t - 20) / 10);
+            intensity = lerp(0.55, 0.78, (t - 20) / 10);
         }
-        const session = clamp(this.sessionLevel * 0.1, 0, 0.22);
-        return clamp(intensity + session, 0.12, 1.12);
+        const session = clamp(this.sessionLevel * 0.08, 0, 0.18);
+        return clamp(intensity + session, 0.08, 0.9);
     }
 
     spawnInterval() {
@@ -899,12 +899,12 @@ class Game {
 
     catchMouth() {
         const basket = this.basketRect();
-        const mouthInset = basket.width * 0.24;
+        const mouthInset = basket.width * 0.18;
         return {
             x: basket.x + mouthInset,
-            y: basket.y + basket.height * 0.34,
+            y: basket.y + basket.height * 0.28,
             width: Math.max(8, basket.width - mouthInset * 2),
-            height: basket.height * 0.26,
+            height: basket.height * 0.34,
         };
     }
 
