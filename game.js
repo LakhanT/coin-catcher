@@ -1,6 +1,5 @@
 const BRAND = {
     name: "PhonePe",
-    product: "PRECIOUS METALS",
     gameTitle: "Big Wealth Starts Small!",
     tagline: "Catch micro-saving products. Build macro wealth.",
     logo: "assets/logo-phonepe.png",
@@ -987,6 +986,7 @@ class Game {
         const comboEl = $("toast-combo");
         if (!toast || !icon || !pts) return;
         icon.src = item.def.src;
+        icon.classList.toggle("hidden", !caught);
         pts.textContent = formatDelta(points);
         pts.classList.toggle("miss", !caught);
         const label = caught ? this.comboLabel(combo || 0) : "";
