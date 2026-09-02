@@ -572,6 +572,26 @@ body[data-mode="paused"] .move-btn {
     transform: translateY(0);
 }
 
+.back-tab {
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    left: max(14px, env(safe-area-inset-left));
+    z-index: 14;
+    min-height: 40px;
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--pp);
+    font-size: 0.92rem;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(8, 2, 20, 0.35);
+}
+
+.back-tab:active {
+    transform: translateY(1px);
+}
+
 .screen {
     position: fixed;
     inset: 0;
@@ -584,6 +604,12 @@ body[data-mode="paused"] .move-btn {
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+#screen-details,
+#screen-message,
+#screen-howto {
+    padding-top: max(68px, calc(env(safe-area-inset-top) + 54px));
 }
 
 .title-shell,
