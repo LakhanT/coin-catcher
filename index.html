@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=27">
+    <link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body data-mode="title">
     <div class="app">
@@ -60,8 +60,7 @@
 
                 <div id="point-toast" class="point-toast hidden">
                     <img id="toast-icon" src="assets/icon-gold.png?v=24" alt="">
-                    <strong id="toast-name">Gold / Silver / Platinum</strong>
-                    <span id="toast-pts" class="toast-pts">+10 Points</span>
+                    <span id="toast-pts" class="toast-pts">+10</span>
                 </div>
             </div>
         </main>
@@ -73,8 +72,7 @@
         <section id="screen-title" class="screen">
             <div class="title-shell open-shell">
                 <div class="title-banner">
-                    <img class="banner-logo" src="assets/logo-phonepe.png" alt="PhonePe">
-                    <p class="eyebrow" id="brand-product">PRECIOUS METALS</p>
+                    <img class="banner-logo banner-logo-white" src="assets/logo-phonepe-white.png?v=28" alt="PhonePe">
                 </div>
                 <div class="title-body">
                     <div id="title-hero-pane" class="title-pane">
@@ -88,15 +86,9 @@
                         <h2 id="game-title">Big Wealth Starts Small!</h2>
                         <p id="game-tagline" class="title-copy">Catch micro-saving products. Build macro wealth.</p>
                     </div>
-                    <div id="title-leaderboard-pane" class="title-pane hidden">
-                        <p class="eyebrow">Top Players</p>
-                        <h2>Leaderboard</h2>
-                        <div id="scores-list" class="scores-list"></div>
-                    </div>
                 </div>
                 <div class="title-actions">
                     <button id="play-btn" class="gold-btn" type="button">Play &amp; Build →</button>
-                    <button id="leaderboard-btn" class="ghost-btn" type="button">Leaderboard 🏆</button>
                 </div>
             </div>
         </section>
@@ -108,9 +100,9 @@
                     <label for="player-name">Your Name</label>
                     <input id="player-name" type="text" maxlength="16" placeholder="Your Name" autocomplete="nickname" required>
                     <label for="player-phone">Phone Number</label>
-                    <input id="player-phone" type="tel" maxlength="15" placeholder="+91 98765 43210" autocomplete="tel" required>
+                    <input id="player-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210" autocomplete="tel" required>
                     <p id="name-error" class="name-error hidden"></p>
-                    <p class="details-privacy">We’ll only use this to contact you about your game summary.</p>
+                    <p class="details-disclaimer">Disclaimer: copy to be confirmed.</p>
                 </div>
                 <div class="panel-actions">
                     <button id="details-back-btn" class="ghost-btn" type="button">Back</button>
@@ -154,6 +146,7 @@
                     </li>
                 </ul>
                 <div class="panel-actions">
+                    <button id="message-back-btn" class="ghost-btn" type="button">Back</button>
                     <button id="message-go-btn" class="gold-btn" type="button">Got It! Let’s Go →</button>
                 </div>
             </div>
@@ -193,6 +186,7 @@
                     </li>
                 </ul>
                 <div class="panel-actions">
+                    <button id="howto-back-btn" class="ghost-btn" type="button">Back</button>
                     <button id="howto-play-btn" class="gold-btn" type="button">Ready, Set, Catch! →</button>
                 </div>
             </div>
@@ -253,6 +247,6 @@
             </div>
         </section>
     </div>
-    <script src="game.js?v=27"></script>
+    <script src="game.js?v=28"></script>
 </body>
 </html>

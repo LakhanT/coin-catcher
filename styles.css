@@ -630,6 +630,14 @@ body[data-mode="paused"] .move-btn {
     background: #fff;
 }
 
+.banner-logo-white {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    width: min(196px, 62vw);
+    height: 48px;
+}
+
 .title-banner .eyebrow {
     color: #f0c14d;
     margin: 0;
@@ -1037,12 +1045,14 @@ body[data-mode="paused"] .move-btn {
     box-shadow: 0 0 0 4px rgba(217, 48, 37, 0.12);
 }
 
-.details-privacy {
-    margin: 4px 0 0;
+.details-privacy,
+.details-disclaimer {
+    margin: 8px 0 0;
     color: var(--muted);
     font-size: 0.82rem;
     font-weight: 600;
     text-align: left;
+    line-height: 1.4;
 }
 
 .point-toast {

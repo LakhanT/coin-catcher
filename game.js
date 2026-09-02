@@ -277,7 +277,7 @@ class Game {
         this.currentScreen = "title";
         this.attractPhase = "hero";
         this.attractElapsed = 0;
-        this.attractRotating = true;
+        this.attractRotating = false;
         this.holdDir = 0;
         this.basketGlow = 0;
         this.missMarks = [];
@@ -330,15 +330,11 @@ class Game {
         });
 
         $("play-btn").addEventListener("click", () => this.startRegistration());
-        $("leaderboard-btn")?.addEventListener("click", () => this.toggleTitleLeaderboard());
-        $("details-back-btn").addEventListener("click", () => {
-            this.attractRotating = true;
-            this.attractElapsed = 0;
-            this.attractPhase = "hero";
-            this.showScreen("title");
-        });
+        $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
+        $("message-back-btn").addEventListener("click", () => this.showScreen("details"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
+        $("howto-back-btn").addEventListener("click", () => this.showScreen("message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
         this.bindHold($("move-left"), -1);
         this.bindHold($("move-right"), 1);
@@ -452,7 +448,7 @@ class Game {
         this.resetRoundState();
         this.attractPhase = "hero";
         this.attractElapsed = 0;
-        this.attractRotating = true;
+        this.attractRotating = false;
         this.showScreen("title");
     }
 
@@ -461,35 +457,13 @@ class Game {
         this.attractElapsed = 0;
     }
 
-    setAttractPane(phase, opts = {}) {
-        this.attractPhase = phase;
-        $("title-hero-pane")?.classList.toggle("hidden", phase !== "hero");
-        $("title-leaderboard-pane")?.classList.toggle("hidden", phase !== "leaderboard");
-        if (!opts.fromRotation) this.attractElapsed = 0;
-        this.syncAttractActions();
+    setAttractPane(phase) {
+        this.attractPhase = phase || "hero";
+        $("title-hero-pane")?.classList.remove("hidden");
     }
 
-    syncAttractActions() {
-        const btn = $("leaderboard-btn");
-        if (!btn) return;
-        btn.textContent = this.attractPhase === "leaderboard" ? "← Back" : "Leaderboard 🏆";
-    }
-
-    toggleTitleLeaderboard() {
-        const next = this.attractPhase === "leaderboard" ? "hero" : "leaderboard";
-        this.setAttractPane(next);
-        if (next === "leaderboard") this.renderBoards();
-    }
-
-    tickAttractRotation(dt) {
-        if (!this.attractRotating || this.mode !== "attract") return;
-        if (this.currentScreen !== "title") return;
-        this.attractElapsed += dt;
-        if (this.attractElapsed < CONFIG.attractRotateDuration) return;
-        this.attractElapsed = 0;
-        const next = this.attractPhase === "hero" ? "leaderboard" : "hero";
-        this.setAttractPane(next, { fromRotation: true });
-        this.renderBoards();
+    tickAttractRotation() {
+        return;
     }
 
     bindHold(btn, dir) {
@@ -539,8 +513,8 @@ class Game {
             this.mode = "attract";
         }
         if (name === "title") {
-            this.setAttractPane(this.attractPhase, opts);
-            if (!this.attractRotating) this.attractRotating = true;
+            this.setAttractPane("hero");
+            this.attractRotating = false;
         }
         if (name === "details" || name === "message" || name === "howto") {
             this.stopAttractRotation();
@@ -918,12 +892,10 @@ class Game {
     showPointToast(item, caught) {
         const toast = $("point-toast");
         const icon = $("toast-icon");
-        const name = $("toast-name");
         const pts = $("toast-pts");
-        if (!toast || !icon || !name || !pts) return;
+        if (!toast || !icon || !pts) return;
         icon.src = item.def.src;
-        name.textContent = item.def.label;
-        pts.textContent = caught ? "+10 Points" : "−10 Points";
+        pts.textContent = caught ? "+10" : "−10";
         pts.classList.toggle("miss", !caught);
         toast.classList.remove("hidden");
         window.clearTimeout(this.toastTimer);
@@ -1318,8 +1290,7 @@ class Game {
 }
 
 async function boot() {
-    $("brand-product").textContent = BRAND.product;
-    $("brand-logo").src = BRAND.logo;
+    if ($("brand-logo")) $("brand-logo").src = BRAND.logo;
 
     const imageMap = {
         background: "assets/bg-city.png",
