@@ -18,6 +18,7 @@ const CONFIG = {
     catchPoints: 10,
     missPoints: -10,
     scoreDecimals: 3,
+    displayDecimals: 1,
     precisionMin: 0.041,
     precisionMax: 1.279,
     precisionPower: 2.2,
@@ -252,16 +253,39 @@ function roundScore(value) {
     return Math.round((Number(value) || 0) * scale) / scale;
 }
 
-function formatScore(value) {
-    return roundScore(value).toFixed(CONFIG.scoreDecimals || 3);
+function formatScore(value, digits = CONFIG.displayDecimals || 1) {
+    const scale = 10 ** digits;
+    const n = Math.round((Number(value) || 0) * scale) / scale;
+    return n.toFixed(digits);
+}
+
+function tiedDisplayScores(rows) {
+    const counts = new Map();
+    for (const row of rows || []) {
+        const key = formatScore(row.score);
+        counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    const tied = new Set();
+    for (const [key, count] of counts) {
+        if (count > 1) tied.add(key);
+    }
+    return tied;
+}
+
+function formatScoreMaybeFine(value, rowsOrTied) {
+    const tied = rowsOrTied instanceof Set ? rowsOrTied : tiedDisplayScores(rowsOrTied);
+    const coarse = formatScore(value);
+    if (tied.has(coarse)) {
+        return formatScore(value, CONFIG.scoreDecimals || 3);
+    }
+    return coarse;
 }
 
 function formatDelta(points) {
-    const n = roundScore(points);
-    const text = Math.abs(n).toFixed(CONFIG.scoreDecimals || 3);
-    if (n > 0) return `+${text}`;
-    if (n < 0) return `−${text}`;
-    return Number(0).toFixed(CONFIG.scoreDecimals || 3);
+    const n = Number(formatScore(points));
+    if (n > 0) return `+${formatScore(points)}`;
+    if (n < 0) return `−${formatScore(Math.abs(points))}`;
+    return formatScore(0);
 }
 
 function isValidPhone(phone) {
@@ -1084,13 +1108,14 @@ class Game {
         const you = $("live-board-you");
         if (!list || !you) return;
         const myIndex = rows.findIndex((row) => row.me);
+        const tied = tiedDisplayScores(rows);
         list.innerHTML = rows.map((row, i) => {
             const prev = this.prevRanks[row.id];
             const move = prev == null || prev === i ? "" : prev > i ? " up" : " down";
             return `<div class="live-row${row.me ? " me" : ""}${move}" data-id="${row.id}">
                 <span class="rank">#${i + 1}</span>
                 <span class="who">${this.boardLabel(row)}</span>
-                <span class="pts">${formatScore(row.score)}</span>
+                <span class="pts">${formatScoreMaybeFine(row.score, tied)}</span>
             </div>`;
         }).join("");
         this.prevRanks = Object.fromEntries(rows.map((row, i) => [row.id, i]));
@@ -1108,6 +1133,7 @@ class Game {
     }
 
     renderLeaderboard(rows = this.boardEntries()) {
+        const tied = tiedDisplayScores(rows);
         const html = !rows.length
             ? `<p class="empty-board">No scores yet. Play a round and save your name.</p>`
             : `
@@ -1116,7 +1142,7 @@ class Game {
                 <div class="score-entry${row.me ? " me" : ""}">
                     <div class="rank">#${i + 1}</div>
                     <div>${this.boardLabel(row)}</div>
-                    <div>${formatScore(row.score)}</div>
+                    <div>${formatScoreMaybeFine(row.score, tied)}</div>
                 </div>
             `).join("")}
         `;
@@ -1188,10 +1214,11 @@ class Game {
         const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.sip;
         const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
         const isBest = this.score > personal && this.score > 0;
-        if ($("final-score")) $("final-score").textContent = formatScore(this.score);
+        const board = this.boardEntries();
+        if ($("final-score")) $("final-score").textContent = formatScoreMaybeFine(this.score, board);
         if ($("caught-count")) $("caught-count").textContent = caught;
         if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
-        if ($("total-count")) $("total-count").textContent = formatScore(this.score);
+        if ($("total-count")) $("total-count").textContent = formatScoreMaybeFine(this.score, board);
         if ($("results-note")) {
             $("results-note").textContent = isBest ? `NEW PERSONAL BEST · ${this.playerName}` : "";
         }
@@ -1236,9 +1263,10 @@ class Game {
         ScoreStore.upsert(name, this.score, phone);
         this.scoreSaved = true;
         const stored = this.bestForPlayer(phone);
-        let message = `Saved ${formatScore(stored)} for ${name}.`;
-        if (this.score > previous) message = `New best for ${name}: ${formatScore(this.score)}.`;
-        else if (previous > this.score) message = `Best for ${name} stays ${formatScore(previous)}.`;
+        const board = this.loadScores();
+        let message = `Saved ${formatScoreMaybeFine(stored, board)} for ${name}.`;
+        if (this.score > previous) message = `New best for ${name}: ${formatScoreMaybeFine(this.score, board)}.`;
+        else if (previous > this.score) message = `Best for ${name} stays ${formatScoreMaybeFine(previous, board)}.`;
         const status = $("save-status");
         if (status) {
             status.textContent = message;
@@ -1253,7 +1281,7 @@ class Game {
         const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
         const ss = String(seconds % 60).padStart(2, "0");
         if ($("timer-value")) $("timer-value").textContent = `${mm}:${ss}`;
-        if ($("score-value")) $("score-value").textContent = formatScore(this.score);
+        if ($("score-value")) $("score-value").textContent = formatScoreMaybeFine(this.score, this.boardEntries());
         $("timer-chip")?.classList.toggle("urgent", this.mode === "play" && seconds <= 10);
     }
 
