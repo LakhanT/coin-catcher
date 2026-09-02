@@ -227,12 +227,11 @@ const ScoreStore = {
 ScoreStore.load();
 
 const ITEMS = {
-    gold: { id: "gold", label: "Gold / Silver / Platinum", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 28, good: true },
-    silver: { id: "silver", label: "Gold / Silver / Platinum", points: 10, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 26, good: true },
-    platinum: { id: "platinum", label: "Gold / Silver / Platinum", points: 10, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 24, good: true },
-    rd: { id: "rd", label: "Daily RD", points: 10, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 22, good: true },
-    insurance: { id: "insurance", label: "Insurance", points: 10, src: "assets/icon-insurance.png?v=7", size: 100, glow: "#c4b5fd", trail: "rgba(196, 181, 253, 0.22)", weight: 22, good: true },
-    sip: { id: "sip", label: "Daily SIP - Mutual Funds", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 22, good: true },
+    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 42, good: true },
+    sip: { id: "sip", label: "SIP-MF", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 26, good: true },
+    silver: { id: "silver", label: "Silver", points: 5, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 16, good: true },
+    platinum: { id: "platinum", label: "Platinum", points: 50, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 10, good: true },
+    rd: { id: "rd", label: "Daily RD", points: 100, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 6, good: true },
 };
 
 function $(id) {
@@ -332,7 +331,7 @@ class Game {
         this.popups = [];
         this.particles = [];
         this.spawnAt = 0;
-        this.stats = { gold: 0, silver: 0, platinum: 0, rd: 0, insurance: 0, sip: 0, missed: 0 };
+        this.stats = { gold: 0, silver: 0, platinum: 0, rd: 0, sip: 0, missed: 0 };
         this.basketX = 0.5;
         this.scoreSaved = false;
         this.prevRanks = {};
@@ -964,7 +963,7 @@ class Game {
     catchItem(item) {
         this.combo += 1;
         const zone = this.catchMouth();
-        const points = CONFIG.catchPoints + this.catchPrecision(item, zone) + this.comboBonus(this.combo);
+        const points = (item.def.points || CONFIG.catchPoints) + this.catchPrecision(item, zone) + this.comboBonus(this.combo);
         this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
         this.basketGlow = 0.55;
@@ -1178,7 +1177,7 @@ class Game {
     }
 
     renderResults() {
-        const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip;
+        const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.sip;
         const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
         const isBest = this.score > personal && this.score > 0;
         if ($("final-score")) $("final-score").textContent = formatScore(this.score);
