@@ -18,6 +18,8 @@ const CONFIG = {
     maxItemsEnd: 12,
     catchPoints: 10,
     missPoints: -10,
+    precisionMin: 0.3,
+    precisionMax: 0.9,
     fallAccelTime: 0.82,
     itemGap: 22,
     mobileSprite: 0.4,
@@ -149,7 +151,7 @@ function normalizeScores(rows) {
         const phone = normalizePhone(row.phone);
         const id = String(row?.id || "").trim() || phone || `legacy-${name.toLowerCase()}`;
         const score = Number(row.score);
-        const pts = Number.isFinite(score) ? score : 0;
+        const pts = Number.isFinite(score) ? roundScore(score) : 0;
         const prev = best.get(key);
         const newer = !prev
             || pts > prev.score
@@ -200,7 +202,7 @@ const ScoreStore = {
         const number = normalizePhone(phone);
         if (!clean || !number) return false;
         const pts = Number(score);
-        const value = Number.isFinite(pts) ? Math.max(0, pts) : 0;
+        const value = Number.isFinite(pts) ? Math.max(0, roundScore(pts)) : 0;
         const rows = this.load();
         const existing = rows.find((row) => normalizePhone(row.phone) === number || row.id === number);
         if (existing) {
@@ -240,6 +242,21 @@ function clamp(value, min, max) {
 
 function lerp(a, b, t) {
     return a + (b - a) * clamp(t, 0, 1);
+}
+
+function roundScore(value) {
+    return Math.round((Number(value) || 0) * 10) / 10;
+}
+
+function formatScore(value) {
+    return roundScore(value).toFixed(1);
+}
+
+function formatDelta(points) {
+    const n = roundScore(points);
+    if (n > 0) return `+${n.toFixed(1)}`;
+    if (n < 0) return `−${Math.abs(n).toFixed(1)}`;
+    return "0.0";
 }
 
 function isValidPhone(phone) {
@@ -917,11 +934,21 @@ class Game {
             && cy <= zone.y + zone.height;
     }
 
+    catchPrecision(item, zone) {
+        const cx = item.x + item.size / 2;
+        const mid = zone.x + zone.width / 2;
+        const half = zone.width / 2 || 1;
+        const centered = 1 - clamp(Math.abs(cx - mid) / half, 0, 1);
+        return roundScore(CONFIG.precisionMin + (CONFIG.precisionMax - CONFIG.precisionMin) * centered);
+    }
+
     catchItem(item) {
-        this.applyScore(CONFIG.catchPoints, item.x + item.size / 2, item.y, item.def.glow, true);
+        const zone = this.catchMouth();
+        const points = CONFIG.catchPoints + this.catchPrecision(item, zone);
+        this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
         this.basketGlow = 0.55;
-        this.showPointToast(item, true);
+        this.showPointToast(item, true, points);
     }
 
     missItem(item) {
@@ -930,16 +957,16 @@ class Game {
         const y = this.h - this.spritePx(28);
         this.applyScore(CONFIG.missPoints, x, y, "#ff5d7a", false);
         this.missMarks.push({ x, y, life: 0.7 });
-        this.showPointToast(item, false);
+        this.showPointToast(item, false, CONFIG.missPoints);
     }
 
-    showPointToast(item, caught) {
+    showPointToast(item, caught, points) {
         const toast = $("point-toast");
         const icon = $("toast-icon");
         const pts = $("toast-pts");
         if (!toast || !icon || !pts) return;
         icon.src = item.def.src;
-        pts.textContent = caught ? "+10" : "−10";
+        pts.textContent = formatDelta(points);
         pts.classList.toggle("miss", !caught);
         toast.classList.remove("hidden");
         window.clearTimeout(this.toastTimer);
@@ -952,7 +979,7 @@ class Game {
     }
 
     applyScore(points, x, y, glow, good) {
-        this.score = Math.max(0, this.score + points);
+        this.score = Math.max(0, roundScore(this.score + points));
         this.burst(x, y, glow, good);
         this.syncHud();
         this.renderBoards();
@@ -1025,7 +1052,7 @@ class Game {
             return `<div class="live-row${row.me ? " me" : ""}${move}" data-id="${row.id}">
                 <span class="rank">#${i + 1}</span>
                 <span class="who">${this.boardLabel(row)}</span>
-                <span class="pts">${row.score}</span>
+                <span class="pts">${formatScore(row.score)}</span>
             </div>`;
         }).join("");
         this.prevRanks = Object.fromEntries(rows.map((row, i) => [row.id, i]));
@@ -1051,7 +1078,7 @@ class Game {
                 <div class="score-entry${row.me ? " me" : ""}">
                     <div class="rank">#${i + 1}</div>
                     <div>${this.boardLabel(row)}</div>
-                    <div>${row.score}</div>
+                    <div>${formatScore(row.score)}</div>
                 </div>
             `).join("")}
         `;
@@ -1123,10 +1150,10 @@ class Game {
         const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip;
         const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
         const isBest = this.score > personal && this.score > 0;
-        if ($("final-score")) $("final-score").textContent = this.score;
+        if ($("final-score")) $("final-score").textContent = formatScore(this.score);
         if ($("caught-count")) $("caught-count").textContent = caught;
         if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
-        if ($("total-count")) $("total-count").textContent = this.score;
+        if ($("total-count")) $("total-count").textContent = formatScore(this.score);
         if ($("results-note")) {
             $("results-note").textContent = isBest ? `NEW PERSONAL BEST · ${this.playerName}` : "";
         }
@@ -1171,9 +1198,9 @@ class Game {
         ScoreStore.upsert(name, this.score, phone);
         this.scoreSaved = true;
         const stored = this.bestForPlayer(phone);
-        let message = `Saved ${stored} for ${name}.`;
-        if (this.score > previous) message = `New best for ${name}: ${this.score}.`;
-        else if (previous > this.score) message = `Best for ${name} stays ${previous}.`;
+        let message = `Saved ${formatScore(stored)} for ${name}.`;
+        if (this.score > previous) message = `New best for ${name}: ${formatScore(this.score)}.`;
+        else if (previous > this.score) message = `Best for ${name} stays ${formatScore(previous)}.`;
         const status = $("save-status");
         if (status) {
             status.textContent = message;
@@ -1188,7 +1215,7 @@ class Game {
         const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
         const ss = String(seconds % 60).padStart(2, "0");
         if ($("timer-value")) $("timer-value").textContent = `${mm}:${ss}`;
-        if ($("score-value")) $("score-value").textContent = this.score;
+        if ($("score-value")) $("score-value").textContent = formatScore(this.score);
         $("timer-chip")?.classList.toggle("urgent", this.mode === "play" && seconds <= 10);
     }
 
