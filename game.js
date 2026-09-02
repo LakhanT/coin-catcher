@@ -9,11 +9,11 @@ const CONFIG = {
     attractRotateDuration: 10,
     duration: 30,
     basketCrossTime: 0.38,
-    spawnStart: 920,
-    spawnEnd: 340,
-    fallTimeStart: 1.15,
-    fallTimeEnd: 0.48,
-    maxItemsStart: 3,
+    spawnStart: 1180,
+    spawnEnd: 280,
+    fallTimeStart: 1.85,
+    fallTimeEnd: 0.44,
+    maxItemsStart: 2,
     maxItemsEnd: 6,
     catchPoints: 10,
     missPoints: -10,
@@ -675,15 +675,15 @@ class Game {
     difficulty() {
         const t = clamp(this.roundElapsed, 0, CONFIG.duration);
         let intensity;
-        if (t < 10) {
-            intensity = lerp(0.22, 0.48, t / 10);
-        } else if (t < 20) {
-            intensity = lerp(0.48, 0.74, (t - 10) / 10);
+        if (t < 8) {
+            intensity = lerp(0, 0.18, t / 8);
+        } else if (t < 18) {
+            intensity = lerp(0.18, 0.58, (t - 8) / 10);
         } else {
-            intensity = lerp(0.74, 0.96, (t - 20) / 10);
+            intensity = lerp(0.58, 1, (t - 18) / 12);
         }
-        const session = clamp(this.sessionLevel * 0.1, 0, 0.22);
-        return clamp(intensity + session, 0.22, 0.98);
+        const session = clamp(this.sessionLevel * 0.08, 0, 0.16);
+        return clamp(intensity + session, 0, 1);
     }
 
     spawnInterval() {
@@ -768,7 +768,8 @@ class Game {
         const size = this.spritePx(def.size);
         const x = this.pickSpawnX(size);
         if (x == null) return false;
-        const terminal = this.fallSpeed() * this.scale * (def.fall || 1) * (0.97 + Math.random() * 0.06);
+        const fallMul = (def.fall || 1) * (0.97 + Math.random() * 0.06);
+        const terminal = this.fallSpeed() * this.scale * fallMul;
         const spin = (def.spin || 1.2) * (Math.random() < 0.5 ? -1 : 1);
         this.items.push({
             def,
@@ -776,8 +777,9 @@ class Game {
             y: -size - Math.random() * this.spritePx(28),
             size,
             vx: (Math.random() - 0.5) * this.w * 0.012,
-            vy: terminal * (0.86 + Math.random() * 0.08),
+            vy: terminal * 0.72,
             terminal,
+            fallMul,
             rot: Math.random() * Math.PI * 2,
             spin,
             sway: Math.random() * Math.PI * 2,
@@ -881,7 +883,9 @@ class Game {
         const catchZone = this.catchMouth();
 
         const accelTime = CONFIG.fallAccelTime;
+        const baseFall = this.fallSpeed() * this.scale;
         this.items.forEach((item) => {
+            item.terminal = baseFall * (item.fallMul || item.def.fall || 1);
             item.sway += item.swaySpeed * dt;
             item.vy = Math.min(item.terminal, item.vy + (item.terminal / accelTime) * dt);
             item.vx += Math.sin(item.sway) * item.swayAmp * dt;
