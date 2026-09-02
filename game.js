@@ -998,7 +998,7 @@ class Game {
         toast.classList.toggle("super", caught && (combo || 0) >= CONFIG.comboSuper);
         toast.classList.remove("hidden");
         window.clearTimeout(this.toastTimer);
-        this.toastTimer = window.setTimeout(() => this.hidePointToast(), (combo || 0) >= CONFIG.comboSuper ? 1400 : 1100);
+        this.toastTimer = window.setTimeout(() => this.hidePointToast(), (combo || 0) >= CONFIG.comboSuper ? 900 : 650);
     }
 
     hidePointToast() {
