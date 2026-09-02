@@ -17,8 +17,10 @@ const CONFIG = {
     maxItemsEnd: 6,
     catchPoints: 10,
     missPoints: -10,
-    precisionMin: 0.3,
-    precisionMax: 0.9,
+    scoreDecimals: 3,
+    precisionMin: 0.041,
+    precisionMax: 1.279,
+    precisionPower: 2.2,
     comboStart: 2,
     comboHot: 5,
     comboSuper: 10,
@@ -246,18 +248,20 @@ function lerp(a, b, t) {
 }
 
 function roundScore(value) {
-    return Math.round((Number(value) || 0) * 10) / 10;
+    const scale = 10 ** (CONFIG.scoreDecimals || 3);
+    return Math.round((Number(value) || 0) * scale) / scale;
 }
 
 function formatScore(value) {
-    return roundScore(value).toFixed(1);
+    return roundScore(value).toFixed(CONFIG.scoreDecimals || 3);
 }
 
 function formatDelta(points) {
     const n = roundScore(points);
-    if (n > 0) return `+${n.toFixed(1)}`;
-    if (n < 0) return `−${Math.abs(n).toFixed(1)}`;
-    return "0.0";
+    const text = Math.abs(n).toFixed(CONFIG.scoreDecimals || 3);
+    if (n > 0) return `+${text}`;
+    if (n < 0) return `−${text}`;
+    return Number(0).toFixed(CONFIG.scoreDecimals || 3);
 }
 
 function isValidPhone(phone) {
@@ -939,17 +943,21 @@ class Game {
 
     catchPrecision(item, zone) {
         const cx = item.x + item.size / 2;
-        const mid = zone.x + zone.width / 2;
-        const half = zone.width / 2 || 1;
-        const centered = 1 - clamp(Math.abs(cx - mid) / half, 0, 1);
-        return roundScore(CONFIG.precisionMin + (CONFIG.precisionMax - CONFIG.precisionMin) * centered);
+        const cy = item.y + item.size * 0.62;
+        const midX = zone.x + zone.width / 2;
+        const midY = zone.y + zone.height / 2;
+        const nx = (cx - midX) / (zone.width / 2 || 1);
+        const ny = (cy - midY) / (zone.height / 2 || 1);
+        const dist = clamp(Math.hypot(nx, ny) / Math.SQRT2, 0, 1);
+        const centered = (1 - dist) ** CONFIG.precisionPower;
+        return CONFIG.precisionMin + (CONFIG.precisionMax - CONFIG.precisionMin) * centered;
     }
 
     comboBonus(count) {
         if (count < CONFIG.comboStart) return 0;
-        if (count < CONFIG.comboHot) return roundScore(0.5 * (count - 1));
-        if (count < CONFIG.comboSuper) return roundScore(2 + 0.5 * (count - CONFIG.comboHot));
-        return roundScore(5 + 0.5 * (count - CONFIG.comboSuper));
+        if (count < CONFIG.comboHot) return 0.5 * (count - 1);
+        if (count < CONFIG.comboSuper) return 2 + 0.5 * (count - CONFIG.comboHot);
+        return 5 + 0.5 * (count - CONFIG.comboSuper);
     }
 
     comboLabel(count) {
