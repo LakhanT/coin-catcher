@@ -25,7 +25,7 @@ const CONFIG = {
     comboStart: 2,
     comboHot: 5,
     comboSuper: 10,
-    fallAccelTime: 0.82,
+    fallAccelTime: 0.36,
     itemGap: 22,
     mobileSprite: 0.4,
     tabletSprite: 0.62,
@@ -229,11 +229,11 @@ const ScoreStore = {
 ScoreStore.load();
 
 const ITEMS = {
-    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 48, good: true },
-    sip: { id: "sip", label: "SIP-MF", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 24, good: true },
-    silver: { id: "silver", label: "Silver", points: 5, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 16, good: true },
-    platinum: { id: "platinum", label: "Platinum", points: 50, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 8, good: true },
-    rd: { id: "rd", label: "Daily RD", points: 100, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 4, good: true },
+    gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 48, fall: 1.22, spin: 2.4, good: true },
+    sip: { id: "sip", label: "SIP-MF", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 24, fall: 1.08, spin: 0.6, good: true },
+    silver: { id: "silver", label: "Silver", points: 5, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 16, fall: 0.96, spin: 1.8, good: true },
+    platinum: { id: "platinum", label: "Platinum", points: 50, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 8, fall: 0.8, spin: 1.2, good: true },
+    rd: { id: "rd", label: "Daily RD", points: 100, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 4, fall: 0.66, spin: 0.45, good: true },
 };
 
 function $(id) {
@@ -768,20 +768,21 @@ class Game {
         const size = this.spritePx(def.size);
         const x = this.pickSpawnX(size);
         if (x == null) return false;
-        const terminal = this.fallSpeed() * this.scale * (0.88 + Math.random() * 0.2);
+        const terminal = this.fallSpeed() * this.scale * (def.fall || 1) * (0.97 + Math.random() * 0.06);
+        const spin = (def.spin || 1.2) * (Math.random() < 0.5 ? -1 : 1);
         this.items.push({
             def,
             x,
-            y: -size - Math.random() * this.spritePx(12),
+            y: -size - Math.random() * this.spritePx(28),
             size,
-            vx: (Math.random() - 0.5) * this.w * 0.035,
-            vy: terminal * (0.42 + Math.random() * 0.16),
+            vx: (Math.random() - 0.5) * this.w * 0.012,
+            vy: terminal * (0.86 + Math.random() * 0.08),
             terminal,
             rot: Math.random() * Math.PI * 2,
-            spin: (Math.random() - 0.5) * 2.6,
+            spin,
             sway: Math.random() * Math.PI * 2,
-            swaySpeed: 1.4 + Math.random() * 2.1,
-            swayAmp: this.w * (0.01 + Math.random() * 0.012),
+            swaySpeed: 0.7 + Math.random() * 0.8,
+            swayAmp: this.w * (0.003 + Math.random() * 0.004),
         });
         return true;
     }
@@ -883,19 +884,14 @@ class Game {
         this.items.forEach((item) => {
             item.sway += item.swaySpeed * dt;
             item.vy = Math.min(item.terminal, item.vy + (item.terminal / accelTime) * dt);
-            item.vx += Math.sin(item.sway) * item.swayAmp * 0.55 * dt;
-            item.vx *= Math.pow(0.9, dt * 60);
+            item.vx += Math.sin(item.sway) * item.swayAmp * dt;
+            item.vx *= Math.pow(0.86, dt * 60);
             item.x += item.vx * dt;
             item.y += item.vy * dt;
             item.rot += item.spin * dt;
             const play = this.itemPlayBounds(item.size);
-            if (item.x < play.min) {
-                item.x = play.min;
-                item.vx = Math.abs(item.vx) * 0.35;
-            } else if (item.x > play.max) {
-                item.x = play.max;
-                item.vx = -Math.abs(item.vx) * 0.35;
-            }
+            item.x = clamp(item.x, play.min, play.max);
+            if (item.x === play.min || item.x === play.max) item.vx = 0;
         });
         this.separateItems();
         this.items = this.items.filter((item) => {
@@ -929,13 +925,14 @@ class Game {
                     const push = overlapX / 2;
                     a.x -= dir * push;
                     b.x += dir * push;
-                    a.vx -= dir * 28 * this.scale;
-                    b.vx += dir * 28 * this.scale;
-                } else {
-                    const dir = dy < 0 ? -1 : 1;
-                    const push = overlapY / 2;
-                    a.y -= dir * push;
-                    b.y += dir * push;
+                    a.vx -= dir * 8 * this.scale;
+                    b.vx += dir * 8 * this.scale;
+                } else if (dy !== 0) {
+                    const lower = dy > 0 ? b : a;
+                    const upper = dy > 0 ? a : b;
+                    const push = overlapY;
+                    upper.y -= push;
+                    if (upper.vy > lower.vy * 0.85) upper.vy = lower.vy * 0.85;
                 }
                 const aPlay = this.itemPlayBounds(a.size);
                 const bPlay = this.itemPlayBounds(b.size);
@@ -1360,11 +1357,9 @@ class Game {
         const img = this.images[item.def.id];
         const cx = item.x + item.size / 2;
         const cy = item.y + item.size / 2;
-        const vx = item.vx || 0;
-        const vy = item.vy || 1;
         ctx.save();
         ctx.translate(cx, cy);
-        ctx.rotate(Math.atan2(vy, vx) - Math.PI / 2);
+        ctx.rotate(Math.atan2(Math.max(item.vy, 1), item.vx || 0) - Math.PI / 2);
         const trail = ctx.createLinearGradient(0, -item.size * 1.15, 0, item.size * 0.1);
         trail.addColorStop(0, "rgba(0, 0, 0, 0)");
         trail.addColorStop(0.55, item.def.trail);
