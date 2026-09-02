@@ -26,12 +26,12 @@ const CONFIG = {
 };
 
 const SAMPLE_SCORES = [
-    { name: "Aarav", score: 240 },
-    { name: "Priya", score: 195 },
-    { name: "Rohan", score: 160 },
-    { name: "Ananya", score: 125 },
-    { name: "Vikram", score: 90 },
-    { name: "Meera", score: 55 },
+    { name: "Aarav", phone: "9876543210", score: 240 },
+    { name: "Priya", phone: "9876543211", score: 195 },
+    { name: "Rohan", phone: "9876543212", score: 160 },
+    { name: "Ananya", phone: "9876543213", score: 125 },
+    { name: "Vikram", phone: "9876543214", score: 90 },
+    { name: "Meera", phone: "9876543215", score: 55 },
 ];
 
 function stores() {
@@ -124,8 +124,19 @@ function storageRemoveRaw(key) {
     } catch (_err) { /* ignore cookie access */ }
 }
 
-function newPlayerId() {
-    return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+function normalizePhone(value) {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+    return digits;
+}
+
+function playerKey(row) {
+    const phone = normalizePhone(row?.phone);
+    if (phone) return `phone:${phone}`;
+    const id = String(row?.id || "").trim();
+    if (id) return `id:${id}`;
+    const name = String(row?.name || "").trim();
+    return name ? `legacy:${name.toLowerCase()}` : "";
 }
 
 function normalizeScores(rows) {
@@ -133,13 +144,24 @@ function normalizeScores(rows) {
     for (const row of rows || []) {
         const name = String(row?.name || "").trim();
         if (!name) continue;
-        const id = String(row?.id || "").trim() || `legacy-${name.toLowerCase()}`;
+        const key = playerKey(row);
+        if (!key) continue;
+        const phone = normalizePhone(row.phone);
+        const id = String(row?.id || "").trim() || phone || `legacy-${name.toLowerCase()}`;
         const score = Number(row.score);
         const pts = Number.isFinite(score) ? score : 0;
-        const prev = best.get(id);
-        if (!prev || pts > prev.score || (pts === prev.score && (row.at || 0) > (prev.at || 0))) {
-            best.set(id, { id, name, score: pts, at: row.at || Date.now() });
-        }
+        const prev = best.get(key);
+        const newer = !prev
+            || pts > prev.score
+            || (pts === prev.score && (row.at || 0) > (prev.at || 0));
+        if (!newer) continue;
+        best.set(key, {
+            id,
+            phone: phone || prev?.phone || "",
+            name,
+            score: pts,
+            at: row.at || Date.now(),
+        });
     }
     return [...best.values()].sort((a, b) => b.score - a.score || (b.at || 0) - (a.at || 0) || String(a.name).localeCompare(String(b.name)));
 }
@@ -151,7 +173,8 @@ function writeStorage(key, value) {
 function sampleRows() {
     const base = Date.now() - 86_400_000;
     return SAMPLE_SCORES.map((row, i) => ({
-        id: `sample-${row.name.toLowerCase()}`,
+        id: normalizePhone(row.phone),
+        phone: normalizePhone(row.phone),
         name: row.name,
         score: row.score,
         at: base - i * 3_600_000,
@@ -172,22 +195,24 @@ const ScoreStore = {
         this.rows = normalizeScores(rows);
         return writeStorage(CONFIG.storageKey, this.rows);
     },
-    upsert(name, score, playerId) {
+    upsert(name, score, phone) {
         const clean = String(name || "").trim().slice(0, 16);
-        const id = String(playerId || "").trim();
-        if (!clean || !id) return false;
+        const number = normalizePhone(phone);
+        if (!clean || !number) return false;
         const pts = Number(score);
         const value = Number.isFinite(pts) ? Math.max(0, pts) : 0;
         const rows = this.load();
-        const existing = rows.find((row) => row.id === id);
+        const existing = rows.find((row) => normalizePhone(row.phone) === number || row.id === number);
         if (existing) {
             if (value > existing.score) {
                 existing.score = value;
                 existing.at = Date.now();
                 existing.name = clean;
+                existing.phone = number;
+                existing.id = number;
             }
         } else {
-            rows.push({ id, name: clean, score: value, at: Date.now() });
+            rows.push({ id: number, phone: number, name: clean, score: value, at: Date.now() });
         }
         this.rows = normalizeScores(rows);
         writeStorage(CONFIG.storageKey, this.rows);
@@ -257,6 +282,7 @@ class Game {
         this.basketGlow = 0;
         this.missMarks = [];
         this.toastTimer = 0;
+        this.roundStartBest = 0;
 
         this.resetRoundState();
         this.bindUi();
@@ -389,8 +415,9 @@ class Game {
             return invalid("Enter a valid 10-digit phone number.", phoneField);
         }
         this.playerName = name.slice(0, 16);
-        this.playerPhone = phone.slice(0, 15);
-        if (!this.playerId) this.playerId = newPlayerId();
+        this.playerPhone = normalizePhone(phone);
+        const existing = this.loadScores().find((row) => normalizePhone(row.phone) === this.playerPhone || row.id === this.playerPhone);
+        this.playerId = existing?.id || this.playerPhone;
         error.textContent = "";
         error.classList.add("hidden");
         return true;
@@ -524,6 +551,7 @@ class Game {
     beginCountdown() {
         if (this.mode === "countdown") return;
         this.resetRoundState();
+        this.roundStartBest = this.bestForPlayer(this.playerPhone);
         this.mode = "countdown";
         this.renderBoards();
         this.showScreenPlayChrome();
@@ -911,7 +939,6 @@ class Game {
         this.score = Math.max(0, this.score + points);
         this.burst(x, y, glow, good);
         this.syncHud();
-        try { this.persistBest(); } catch (_err) { /* never block scoring */ }
         this.renderBoards();
     }
 
@@ -921,7 +948,7 @@ class Game {
 
     boardEntries() {
         const youName = this.currentPlayerName();
-        const youId = this.playerId;
+        const youPhone = normalizePhone(this.playerPhone);
         const overlayLive = ["countdown", "play", "paused", "results"].includes(this.mode);
         const saved = this.loadScores();
         const rows = [];
@@ -930,13 +957,15 @@ class Game {
         for (const row of saved) {
             const name = String(row.name || "").trim();
             if (!name) continue;
-            const id = String(row.id || "").trim() || `legacy-${name.toLowerCase()}`;
-            const me = Boolean(youId) && id === youId;
+            const phone = normalizePhone(row.phone);
+            const id = String(row.id || "").trim() || phone || `legacy-${name.toLowerCase()}`;
+            const me = Boolean(youPhone) && (phone === youPhone || id === youPhone);
             const savedScore = Number(row.score) || 0;
             const score = me && overlayLive ? Math.max(savedScore, this.score) : savedScore;
             if (me) sawYou = true;
             rows.push({
                 id,
+                phone,
                 name,
                 score,
                 at: row.at || 0,
@@ -944,9 +973,10 @@ class Game {
             });
         }
 
-        if (youId && youName && overlayLive && !sawYou) {
+        if (youPhone && youName && overlayLive && !sawYou) {
             rows.push({
-                id: youId,
+                id: youPhone,
+                phone: youPhone,
                 name: youName,
                 score: this.score,
                 at: Date.now(),
@@ -1075,8 +1105,8 @@ class Game {
 
     renderResults() {
         const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.insurance + this.stats.sip;
-        const personal = this.bestForPlayer(this.playerId);
-        const isBest = this.score >= personal && this.score > 0;
+        const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
+        const isBest = this.score > personal && this.score > 0;
         if ($("final-score")) $("final-score").textContent = this.score;
         if ($("caught-count")) $("caught-count").textContent = caught;
         if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
@@ -1091,10 +1121,10 @@ class Game {
         return scores[0]?.score || 0;
     }
 
-    bestForPlayer(playerId) {
-        const id = String(playerId || "").trim();
-        if (!id) return 0;
-        return this.loadScores().find((row) => row.id === id)?.score || 0;
+    bestForPlayer(phone) {
+        const number = normalizePhone(phone);
+        if (!number) return 0;
+        return this.loadScores().find((row) => normalizePhone(row.phone) === number || row.id === number)?.score || 0;
     }
 
     uniqueScores(rows) {
@@ -1107,20 +1137,24 @@ class Game {
 
     persistBest() {
         const name = (this.playerName || $("player-name")?.value || "").trim();
-        if (!name || !this.playerId) return false;
-        if (this.score <= 0 && this.bestForPlayer(this.playerId) > 0) return true;
-        return ScoreStore.upsert(name, this.score, this.playerId);
+        const phone = normalizePhone(this.playerPhone || $("player-phone")?.value);
+        if (!name || !phone) return false;
+        if (this.score <= 0 && this.bestForPlayer(phone) > 0) return true;
+        return ScoreStore.upsert(name, this.score, phone);
     }
 
     saveScore() {
         const typed = $("player-name")?.value?.trim();
         const name = (this.playerName || typed || "").trim().slice(0, 16);
-        if (!name || !this.playerId) return false;
+        const phone = normalizePhone(this.playerPhone || $("player-phone")?.value);
+        if (!name || !phone) return false;
         this.playerName = name;
-        const previous = this.bestForPlayer(this.playerId);
-        ScoreStore.upsert(name, this.score, this.playerId);
+        this.playerPhone = phone;
+        this.playerId = phone;
+        const previous = this.roundStartBest ?? this.bestForPlayer(phone);
+        ScoreStore.upsert(name, this.score, phone);
         this.scoreSaved = true;
-        const stored = this.bestForPlayer(this.playerId);
+        const stored = this.bestForPlayer(phone);
         let message = `Saved ${stored} for ${name}.`;
         if (this.score > previous) message = `New best for ${name}: ${this.score}.`;
         else if (previous > this.score) message = `Best for ${name} stays ${previous}.`;
