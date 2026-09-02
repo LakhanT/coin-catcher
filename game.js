@@ -288,6 +288,8 @@ class Game {
         this.bindUi();
         this.resize();
         window.addEventListener("resize", () => this.resize());
+        window.addEventListener("orientationchange", () => this.resize());
+        window.visualViewport?.addEventListener("resize", () => this.resize());
         if (window.ResizeObserver) {
             new ResizeObserver(() => this.resize()).observe($("playfield"));
         }
@@ -594,19 +596,24 @@ class Game {
     resize() {
         const field = $("playfield");
         const rect = field.getBoundingClientRect();
+        const cssW = Math.max(280, rect.width);
+        const cssH = Math.max(220, rect.height);
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        this.canvas.width = Math.max(320, Math.floor(rect.width * dpr));
-        this.canvas.height = Math.max(240, Math.floor(rect.height * dpr));
+        const maxPx = 3840;
+        const fit = Math.min(1, maxPx / (cssW * dpr), maxPx / (cssH * dpr));
+        this.scale = dpr * fit;
+        this.canvas.width = Math.max(280, Math.floor(cssW * this.scale));
+        this.canvas.height = Math.max(220, Math.floor(cssH * this.scale));
         this.w = this.canvas.width;
         this.h = this.canvas.height;
-        this.scale = dpr;
+        this.clampBasket();
     }
 
     spriteScale() {
         const cssW = this.w / (this.scale || 1);
-        if (cssW <= 480) return CONFIG.mobileSprite;
-        if (cssW <= 820) return CONFIG.tabletSprite;
-        return 1;
+        const cssH = this.h / (this.scale || 1);
+        const shorter = Math.min(cssW, cssH);
+        return clamp(shorter * 0.1 / 104, 0.34, 3.2);
     }
 
     spritePx(value) {
@@ -713,11 +720,22 @@ class Game {
 
     basketMetrics() {
         const compact = this.spriteScale() < 0.75;
-        const width = this.spritePx(compact ? 172 : 248);
-        const height = this.spritePx(compact ? 144 : 208);
+        let width = this.spritePx(compact ? 172 : 248);
+        let height = this.spritePx(compact ? 144 : 208);
+        const maxW = this.w * 0.3;
+        const minW = this.w * 0.16;
+        if (width > maxW) {
+            const k = maxW / width;
+            width *= k;
+            height *= k;
+        } else if (width < minW) {
+            const k = minW / width;
+            width *= k;
+            height *= k;
+        }
         const inset = width * (compact ? 0.16 : 0.12);
         const catchW = width * (compact ? 0.68 : 0.76);
-        const margin = this.spritePx(compact ? 24 : 32);
+        const margin = Math.max(this.spritePx(compact ? 24 : 32), this.w * 0.03);
         const minX = margin;
         const maxX = Math.max(minX, this.w - width - margin);
         return { compact, width, height, inset, catchW, margin, minX, maxX };

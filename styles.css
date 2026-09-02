@@ -15,13 +15,23 @@
     --bg: #0b0618;
     --card: #1a0d33;
     --shadow: 0 18px 48px rgba(8, 2, 20, 0.55);
-    --radius: 20px;
+    --ui: clamp(14px, 0.55vw + 0.55vh, 28px);
+    --space: clamp(8px, 1.15vmin, 32px);
+    --hud-logo: clamp(120px, 22vmin, 280px);
+    --chip-min: clamp(108px, 16vmin, 220px);
+    --move: clamp(48px, 8.4vmin, 108px);
+    --panel: min(94vw, clamp(300px, 54vmin, 960px));
+    --radius: clamp(14px, 2.2vmin, 28px);
 }
 
 *,
 *::before,
 *::after {
     box-sizing: border-box;
+}
+
+html {
+    font-size: var(--ui);
 }
 
 html,
@@ -59,13 +69,16 @@ button {
 
 .app {
     position: relative;
+    width: min(100vw, calc(100dvh * 16 / 9));
+    max-width: 100%;
     height: 100%;
     height: 100dvh;
     max-height: 100dvh;
+    margin-inline: auto;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-    gap: 8px;
+    padding: var(--space) var(--space) calc(var(--space) + env(safe-area-inset-bottom));
+    gap: clamp(6px, 1vmin, 16px);
     overflow: hidden;
 }
 
@@ -105,18 +118,18 @@ button {
 }
 
 .top-bar {
-    grid-template-columns: minmax(140px, 1fr) auto minmax(140px, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     min-height: 0;
 }
 
 .brand img,
 .banner-logo {
-    width: min(176px, 34vw);
-    height: 40px;
+    width: var(--hud-logo);
+    height: clamp(32px, 5.2vmin, 64px);
     object-fit: contain;
     object-position: left center;
     background: #fff;
-    padding: 6px 10px;
+    padding: clamp(4px, 0.8vmin, 10px) clamp(8px, 1.2vmin, 14px);
     border-radius: 12px;
 }
 
@@ -171,9 +184,9 @@ button {
 .score-chip {
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-width: 132px;
-    padding: 8px 14px;
+    gap: clamp(6px, 1vmin, 12px);
+    min-width: var(--chip-min);
+    padding: clamp(6px, 1vmin, 12px) clamp(10px, 1.4vmin, 18px);
     border-radius: 16px;
 }
 
@@ -204,7 +217,7 @@ button {
 .timer-value,
 .score-value {
     display: block;
-    font-size: 1.05rem;
+    font-size: clamp(1rem, 2.4vmin, 1.6rem);
     color: #fff;
     font-weight: 800;
 }
@@ -230,6 +243,7 @@ button {
 
 .playfield {
     position: relative;
+    width: 100%;
     height: 100%;
     min-height: 0;
     border-radius: var(--radius);
@@ -425,20 +439,20 @@ button {
     position: absolute;
     bottom: 18%;
     z-index: 3;
-    width: 56px;
-    height: 56px;
+    width: var(--move);
+    height: var(--move);
     border: 0;
     border-radius: 16px;
     background: #f0c14d;
     color: #3d146e;
-    font-size: 2rem;
+    font-size: clamp(1.4rem, 4vmin, 2.6rem);
     line-height: 1;
     font-weight: 800;
     box-shadow: 0 10px 24px rgba(240, 193, 77, 0.35);
 }
 
-.move-left { left: 12px; }
-.move-right { right: 12px; }
+.move-left { left: var(--space); }
+.move-right { right: var(--space); }
 
 body[data-mode="play"] .move-btn,
 body[data-mode="paused"] .move-btn {
@@ -574,16 +588,16 @@ body[data-mode="paused"] .move-btn {
 
 .back-tab {
     position: fixed;
-    top: max(14px, env(safe-area-inset-top));
-    left: max(14px, env(safe-area-inset-left));
+    top: max(var(--space), env(safe-area-inset-top));
+    left: max(var(--space), env(safe-area-inset-left));
     z-index: 14;
-    min-height: 40px;
+    min-height: clamp(36px, 6vmin, 56px);
     padding: 0.5rem 1rem;
     border: 0;
     border-radius: 999px;
     background: #fff;
     color: var(--pp);
-    font-size: 0.92rem;
+    font-size: clamp(0.85rem, 2.2vmin, 1.15rem);
     font-weight: 800;
     box-shadow: 0 8px 20px rgba(8, 2, 20, 0.35);
 }
@@ -614,7 +628,7 @@ body[data-mode="paused"] .move-btn {
 
 .title-shell,
 .panel {
-    width: min(520px, 100%);
+    width: var(--panel);
     margin-top: auto;
     margin-bottom: auto;
     flex: 0 0 auto;
@@ -660,8 +674,8 @@ body[data-mode="paused"] .move-btn {
     background: transparent;
     padding: 0;
     border-radius: 0;
-    width: min(196px, 62vw);
-    height: 48px;
+    width: clamp(148px, 36vmin, 320px);
+    height: clamp(36px, 7vmin, 72px);
 }
 
 .title-banner .eyebrow {
@@ -1086,8 +1100,8 @@ body[data-mode="paused"] .move-btn {
     left: 50%;
     bottom: 30%;
     z-index: 5;
-    width: min(240px, 72%);
-    padding: 16px 14px 14px;
+    width: min(clamp(160px, 28vmin, 320px), 72%);
+    padding: clamp(10px, 1.6vmin, 18px);
     border-radius: 18px;
     background: #fff;
     color: #1a0d33;
@@ -1100,8 +1114,8 @@ body[data-mode="paused"] .move-btn {
 }
 
 .point-toast img {
-    width: 56px;
-    height: 56px;
+    width: clamp(40px, 7vmin, 72px);
+    height: clamp(40px, 7vmin, 72px);
     object-fit: contain;
 }
 
@@ -1311,7 +1325,24 @@ body[data-mode="leaderboard"] .bottom-bar {
     pointer-events: none;
 }
 
-@media (max-width: 900px) {
+@media (max-height: 560px) {
+    .app {
+        padding: 6px;
+        gap: 4px;
+    }
+
+    .bottom-bar {
+        display: none;
+    }
+
+    .timer-chip,
+    .score-chip {
+        min-width: 0;
+        padding: 4px 8px;
+    }
+}
+
+@media (max-width: 900px), (orientation: portrait) and (max-width: 1200px) {
     .app {
         padding: 8px;
         gap: 8px;
@@ -1322,8 +1353,8 @@ body[data-mode="leaderboard"] .bottom-bar {
     }
 
     .brand img {
-        width: 136px;
-        height: 32px;
+        width: clamp(112px, 28vw, 168px);
+        height: clamp(28px, 6vw, 40px);
     }
 
     .title-coin {
