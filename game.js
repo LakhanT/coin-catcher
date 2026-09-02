@@ -809,14 +809,7 @@ class Game {
     }
 
     updateItems(dt, collide) {
-        const basket = this.basketRect();
-        const metrics = this.basketMetrics();
-        const catchZone = {
-            x: basket.x + metrics.inset,
-            y: basket.y + basket.height * (metrics.compact ? 0.28 : 0.2),
-            width: metrics.catchW,
-            height: basket.height * (metrics.compact ? 0.34 : 0.42),
-        };
+        const catchZone = this.catchMouth();
 
         const accelTime = CONFIG.fallAccelTime;
         this.items.forEach((item) => {
@@ -838,7 +831,7 @@ class Game {
         });
         this.separateItems();
         this.items = this.items.filter((item) => {
-            if (collide && this.hits(item, catchZone)) {
+            if (collide && this.fallsIntoBasket(item, catchZone)) {
                 this.catchItem(item);
                 return false;
             }
@@ -884,11 +877,24 @@ class Game {
         }
     }
 
-    hits(item, zone) {
-        return item.x < zone.x + zone.width &&
-            item.x + item.size > zone.x &&
-            item.y < zone.y + zone.height &&
-            item.y + item.size > zone.y;
+    catchMouth() {
+        const basket = this.basketRect();
+        const mouthInset = basket.width * 0.24;
+        return {
+            x: basket.x + mouthInset,
+            y: basket.y + basket.height * 0.34,
+            width: Math.max(8, basket.width - mouthInset * 2),
+            height: basket.height * 0.26,
+        };
+    }
+
+    fallsIntoBasket(item, zone) {
+        const cx = item.x + item.size / 2;
+        const cy = item.y + item.size * 0.62;
+        return cx >= zone.x
+            && cx <= zone.x + zone.width
+            && cy >= zone.y
+            && cy <= zone.y + zone.height;
     }
 
     catchItem(item) {
