@@ -9,16 +9,16 @@ const BRAND = {
 const CONFIG = {
     attractRotateDuration: 10,
     duration: 30,
-    basketSpeed: 620,
-    spawnStart: 880,
-    spawnEnd: 220,
-    fallStart: 170,
-    fallEnd: 560,
-    maxItemsStart: 5,
-    maxItemsEnd: 12,
+    basketCrossTime: 0.4,
+    spawnStart: 500,
+    spawnEnd: 120,
+    fallTimeStart: 1.2,
+    fallTimeEnd: 0.56,
+    maxItemsStart: 6,
+    maxItemsEnd: 16,
     catchPoints: 10,
     missPoints: -10,
-    fallAccelTime: 0.9,
+    fallAccelTime: 0.72,
     itemGap: 22,
     mobileSprite: 0.4,
     tabletSprite: 0.62,
@@ -621,9 +621,13 @@ class Game {
     }
 
     difficulty() {
-        const round = clamp(this.roundElapsed / CONFIG.duration, 0, 1);
-        const session = clamp(this.sessionLevel * 0.22, 0, 1.4);
-        return clamp(round * 0.85 + session, 0, 1.7);
+        const t = clamp(this.roundElapsed / CONFIG.duration, 0, 1);
+        const ramp = t * t;
+        let surge = 0;
+        if (t >= 0.4) surge += 0.28;
+        if (t >= 0.75) surge += 0.38;
+        const session = clamp(this.sessionLevel * 0.38, 0, 1.7);
+        return clamp(0.42 + ramp * 0.72 + surge + session, 0.42, 2.2);
     }
 
     spawnInterval() {
@@ -632,8 +636,16 @@ class Game {
     }
 
     fallSpeed() {
+        const cssH = this.h / (this.scale || 1);
         const d = this.difficulty();
-        return CONFIG.fallStart + (CONFIG.fallEnd - CONFIG.fallStart) * Math.min(d, 1.15) / 1.15;
+        const time = CONFIG.fallTimeStart + (CONFIG.fallTimeEnd - CONFIG.fallTimeStart) * Math.min(d, 1);
+        return cssH / Math.max(0.4, time);
+    }
+
+    basketMoveSpeed() {
+        const travel = this.basketTravel();
+        const span = Math.max(0.28, travel.max - travel.min);
+        return span / CONFIG.basketCrossTime;
     }
 
     maxItemsNow() {
@@ -700,20 +712,20 @@ class Game {
         const size = this.spritePx(def.size);
         const x = this.pickSpawnX(size);
         if (x == null) return false;
-        const terminal = this.fallSpeed() * this.scale * (0.82 + Math.random() * 0.28);
+        const terminal = this.fallSpeed() * this.scale * (0.88 + Math.random() * 0.2);
         this.items.push({
             def,
             x,
             y: -size - Math.random() * this.spritePx(12),
             size,
-            vx: (Math.random() - 0.5) * this.spritePx(36),
-            vy: terminal * (0.28 + Math.random() * 0.18),
+            vx: (Math.random() - 0.5) * this.w * 0.035,
+            vy: terminal * (0.42 + Math.random() * 0.16),
             terminal,
             rot: Math.random() * Math.PI * 2,
             spin: (Math.random() - 0.5) * 2.6,
             sway: Math.random() * Math.PI * 2,
-            swaySpeed: 1.1 + Math.random() * 1.7,
-            swayAmp: this.spritePx(16 + Math.random() * 22),
+            swaySpeed: 1.4 + Math.random() * 2.1,
+            swayAmp: this.w * (0.01 + Math.random() * 0.012),
         });
         return true;
     }
@@ -794,7 +806,7 @@ class Game {
         if (this.keys.ArrowLeft || this.keys.a || this.keys.A) move -= 1;
         if (this.keys.ArrowRight || this.keys.d || this.keys.D) move += 1;
         const travel = this.basketTravel();
-        this.basketX = clamp(this.basketX + move * (CONFIG.basketSpeed * this.scale / this.w) * dt, travel.min, travel.max);
+        this.basketX = clamp(this.basketX + move * this.basketMoveSpeed() * dt, travel.min, travel.max);
 
         this.spawnAt -= dt * 1000;
         if (this.spawnAt <= 0) {
