@@ -667,41 +667,23 @@ body[data-mode="paused"] .move-btn {
 }
 
 .title-banner {
-    background: linear-gradient(180deg, #ffffff 0%, #f3eaff 100%);
-    padding: 22px 24px 18px;
+    background: transparent;
+    padding: 22px 24px 6px;
     text-align: center;
     position: relative;
-    border-radius: 16px 16px 0 0;
 }
 
-.title-banner::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 24px;
-    background: var(--card);
-    border-radius: 24px 24px 0 0;
-}
-
-.banner-logo {
-    margin: 0 auto 10px;
+.banner-logo,
+.banner-logo-ondark {
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
     object-position: center;
-    width: min(220px, 60vw);
-    height: 52px;
+    background: transparent;
     padding: 0;
     border-radius: 0;
-    background: transparent;
-}
-
-.banner-logo-white {
-    background: #fff;
-    padding: 12px 28px;
-    border-radius: 16px;
-    width: clamp(260px, 60vw, 460px);
-    height: clamp(60px, 12vmin, 110px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    width: clamp(168px, 44vw, 260px);
+    height: clamp(48px, 9vmin, 76px);
 }
 
 .title-banner .eyebrow {

@@ -23,8 +23,7 @@ const CONFIG = {
     precisionMax: 1.279,
     precisionPower: 2.2,
     comboStart: 2,
-    comboHot: 5,
-    comboSuper: 10,
+    comboMax: 5,
     fallAccelTime: 0.36,
     itemGap: 22,
     mobileSprite: 0.4,
@@ -1102,24 +1101,20 @@ class Game {
         return CONFIG.precisionMin + (CONFIG.precisionMax - CONFIG.precisionMin) * centered;
     }
 
-    comboBonus(count) {
-        if (count < CONFIG.comboStart) return 0;
-        if (count < CONFIG.comboHot) return 0.5 * (count - 1);
-        if (count < CONFIG.comboSuper) return 2 + 0.5 * (count - CONFIG.comboHot);
-        return 5 + 0.5 * (count - CONFIG.comboSuper);
+    comboMultiplier(count) {
+        return clamp(count, 1, CONFIG.comboMax || 5);
     }
 
     comboLabel(count) {
-        if (count >= CONFIG.comboSuper) return "🔥 SUPER COMBO";
-        if (count >= CONFIG.comboHot) return `COMBO x${count}`;
-        if (count >= CONFIG.comboStart) return `COMBO x${count}`;
-        return "";
+        if (count < CONFIG.comboStart) return "";
+        return `COMBO x${this.comboMultiplier(count)}`;
     }
 
     catchItem(item) {
         this.combo += 1;
         const zone = this.catchMouth();
-        const points = (item.def.points || CONFIG.catchPoints) + this.catchPrecision(item, zone) + this.comboBonus(this.combo);
+        const base = (item.def.points || CONFIG.catchPoints) + this.catchPrecision(item, zone);
+        const points = base * this.comboMultiplier(this.combo);
         this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
         this.basketGlow = 0.55;
@@ -1151,12 +1146,12 @@ class Game {
         if (comboEl) {
             comboEl.textContent = label;
             comboEl.classList.toggle("hidden", !label);
-            comboEl.classList.toggle("super", (combo || 0) >= CONFIG.comboSuper);
+            comboEl.classList.toggle("super", (combo || 0) >= CONFIG.comboMax);
         }
-        toast.classList.toggle("super", caught && (combo || 0) >= CONFIG.comboSuper);
+        toast.classList.toggle("super", caught && (combo || 0) >= CONFIG.comboMax);
         toast.classList.remove("hidden");
         window.clearTimeout(this.toastTimer);
-        this.toastTimer = window.setTimeout(() => this.hidePointToast(), (combo || 0) >= CONFIG.comboSuper ? 900 : 650);
+        this.toastTimer = window.setTimeout(() => this.hidePointToast(), (combo || 0) >= CONFIG.comboMax ? 900 : 650);
     }
 
     hidePointToast() {
