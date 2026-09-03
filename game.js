@@ -2,7 +2,7 @@ const BRAND = {
     name: "PhonePe",
     gameTitle: "Big Wealth Starts Small!",
     tagline: "Catch micro-saving products. Build macro wealth.",
-    logo: "assets/logo-phonepe.png",
+    logo: "https://www.phonepe.com/webstatic/14848/images/home/ppl.svg",
 };
 
 const CONFIG = {
