@@ -690,9 +690,8 @@ body[data-mode="paused"] .move-btn {
     background: transparent;
     padding: 0;
     border-radius: 0;
-    width: clamp(160px, 44vw, 280px);
-    height: clamp(42px, 8vmin, 72px);
-    filter: drop-shadow(0 2px 8px rgba(89, 50, 155, 0.12));
+    width: clamp(240px, 58vw, 420px);
+    height: clamp(64px, 12vmin, 110px);
 }
 
 .title-banner .eyebrow {
