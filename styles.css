@@ -128,7 +128,7 @@ button {
     height: clamp(32px, 5.2vmin, 64px);
     object-fit: contain;
     object-position: left center;
-    background: #fff;
+    background: transparent;
     padding: clamp(4px, 0.8vmin, 10px) clamp(8px, 1.2vmin, 14px);
     border-radius: 12px;
 }
@@ -676,11 +676,11 @@ body[data-mode="paused"] .move-btn {
 .banner-logo {
     margin: 0 auto 10px;
     object-position: center;
-    width: min(168px, 56vw);
-    height: 40px;
-    padding: 7px 12px;
-    border-radius: 14px;
-    background: #fff;
+    width: min(200px, 56vw);
+    height: 48px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .banner-logo-white {

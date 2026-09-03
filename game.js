@@ -33,12 +33,12 @@ const CONFIG = {
 };
 
 const SAMPLE_SCORES = [
-    { name: "Aarav", phone: "9876543210", score: 240 },
-    { name: "Priya", phone: "9876543211", score: 195 },
-    { name: "Rohan", phone: "9876543212", score: 160 },
-    { name: "Ananya", phone: "9876543213", score: 125 },
-    { name: "Vikram", phone: "9876543214", score: 90 },
-    { name: "Meera", phone: "9876543215", score: 55 },
+    { name: "Aarav", phone: "9876543210", score: 240, missed: 2 },
+    { name: "Priya", phone: "9876543211", score: 195, missed: 4 },
+    { name: "Rohan", phone: "9876543212", score: 160, missed: 5 },
+    { name: "Ananya", phone: "9876543213", score: 125, missed: 7 },
+    { name: "Vikram", phone: "9876543214", score: 90, missed: 9 },
+    { name: "Meera", phone: "9876543215", score: 55, missed: 12 },
 ];
 
 function stores() {
@@ -157,20 +157,28 @@ function normalizeScores(rows) {
         const id = String(row?.id || "").trim() || phone || `legacy-${name.toLowerCase()}`;
         const score = Number(row.score);
         const pts = Number.isFinite(score) ? roundScore(score) : 0;
+        const missed = Number(row.missed) || 0;
         const prev = best.get(key);
         const newer = !prev
             || pts > prev.score
-            || (pts === prev.score && (row.at || 0) > (prev.at || 0));
+            || (pts === prev.score && missed < (prev.missed ?? Infinity))
+            || (pts === prev.score && missed === prev.missed && (row.at || 0) > (prev.at || 0));
         if (!newer) continue;
         best.set(key, {
             id,
             phone: phone || prev?.phone || "",
             name,
             score: pts,
+            missed,
             at: row.at || Date.now(),
         });
     }
-    return [...best.values()].sort((a, b) => b.score - a.score || (b.at || 0) - (a.at || 0) || String(a.name).localeCompare(String(b.name)));
+    return [...best.values()].sort((a, b) =>
+        b.score - a.score
+        || (a.missed ?? Infinity) - (b.missed ?? Infinity)
+        || (b.at || 0) - (a.at || 0)
+        || String(a.name).localeCompare(String(b.name))
+    );
 }
 
 function writeStorage(key, value) {
@@ -184,6 +192,7 @@ function sampleRows() {
         phone: normalizePhone(row.phone),
         name: row.name,
         score: row.score,
+        missed: row.missed || 0,
         at: base - i * 3_600_000,
     }));
 }
@@ -202,24 +211,28 @@ const ScoreStore = {
         this.rows = normalizeScores(rows);
         return writeStorage(CONFIG.storageKey, this.rows);
     },
-    upsert(name, score, phone) {
+    upsert(name, score, phone, missed) {
         const clean = String(name || "").trim().slice(0, 16);
         const number = normalizePhone(phone);
         if (!clean || !number) return false;
         const pts = Number(score);
         const value = Number.isFinite(pts) ? Math.max(0, roundScore(pts)) : 0;
+        const missedCount = Number(missed) || 0;
         const rows = this.load();
         const existing = rows.find((row) => normalizePhone(row.phone) === number || row.id === number);
         if (existing) {
-            if (value > existing.score) {
+            const dominated = value > existing.score
+                || (value === existing.score && missedCount < (existing.missed ?? Infinity));
+            if (dominated) {
                 existing.score = value;
+                existing.missed = missedCount;
                 existing.at = Date.now();
                 existing.name = clean;
                 existing.phone = number;
                 existing.id = number;
             }
         } else {
-            rows.push({ id: number, phone: number, name: clean, score: value, at: Date.now() });
+            rows.push({ id: number, phone: number, name: clean, score: value, missed: missedCount, at: Date.now() });
         }
         this.rows = normalizeScores(rows);
         writeStorage(CONFIG.storageKey, this.rows);
@@ -1080,11 +1093,12 @@ class Game {
     missItem(item) {
         this.combo = 0;
         this.stats.missed += 1;
+        const penalty = CONFIG.missPoints - (this.stats.missed * 0.1);
         const x = item.x + item.size / 2;
         const y = this.h - this.spritePx(28);
-        this.applyScore(CONFIG.missPoints, x, y, "#ff5d7a", false);
+        this.applyScore(penalty, x, y, "#ff5d7a", false);
         this.missMarks.push({ x, y, life: 0.7 });
-        this.showPointToast(item, false, CONFIG.missPoints, 0);
+        this.showPointToast(item, false, penalty, 0);
     }
 
     showPointToast(item, caught, points, combo) {
@@ -1143,12 +1157,14 @@ class Game {
             const me = Boolean(youPhone) && (phone === youPhone || id === youPhone);
             const savedScore = Number(row.score) || 0;
             const score = me && overlayLive ? Math.max(savedScore, this.score) : savedScore;
+            const missed = me && overlayLive ? this.stats.missed : (Number(row.missed) || 0);
             if (me) sawYou = true;
             rows.push({
                 id,
                 phone,
                 name,
                 score,
+                missed,
                 at: row.at || 0,
                 me,
             });
@@ -1160,12 +1176,18 @@ class Game {
                 phone: youPhone,
                 name: youName,
                 score: this.score,
+                missed: this.stats.missed,
                 at: Date.now(),
                 me: true,
             });
         }
 
-        return rows.sort((a, b) => b.score - a.score || (b.at || 0) - (a.at || 0) || String(a.name).localeCompare(String(b.name)));
+        return rows.sort((a, b) =>
+            b.score - a.score
+            || (a.missed ?? Infinity) - (b.missed ?? Infinity)
+            || (b.at || 0) - (a.at || 0)
+            || String(a.name).localeCompare(String(b.name))
+        );
     }
 
     boardLabel(row) {
@@ -1324,7 +1346,7 @@ class Game {
         const phone = normalizePhone(this.playerPhone || $("player-phone")?.value);
         if (!name || !phone) return false;
         if (this.score <= 0 && this.bestForPlayer(phone) > 0) return true;
-        return ScoreStore.upsert(name, this.score, phone);
+        return ScoreStore.upsert(name, this.score, phone, this.stats.missed);
     }
 
     saveScore() {
@@ -1336,7 +1358,7 @@ class Game {
         this.playerPhone = phone;
         this.playerId = phone;
         const previous = this.roundStartBest ?? this.bestForPlayer(phone);
-        ScoreStore.upsert(name, this.score, phone);
+        ScoreStore.upsert(name, this.score, phone, this.stats.missed);
         this.scoreSaved = true;
         const stored = this.bestForPlayer(phone);
         const board = this.loadScores();
