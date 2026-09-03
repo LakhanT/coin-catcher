@@ -658,21 +658,22 @@ body[data-mode="paused"] .move-btn {
 }
 
 .title-banner {
-    background: #fff;
-    padding: 28px 24px 34px;
+    background: linear-gradient(180deg, #ffffff 0%, #f3eaff 100%);
+    padding: 22px 24px 18px;
     text-align: center;
     position: relative;
+    border-radius: 16px 16px 0 0;
 }
 
 .title-banner::after {
     content: "";
     position: absolute;
-    left: -10%;
-    right: -10%;
-    bottom: -18px;
-    height: 36px;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 24px;
     background: var(--card);
-    border-radius: 50% 50% 0 0;
+    border-radius: 24px 24px 0 0;
 }
 
 .banner-logo {
@@ -689,8 +690,9 @@ body[data-mode="paused"] .move-btn {
     background: transparent;
     padding: 0;
     border-radius: 0;
-    width: clamp(240px, 58vw, 420px);
-    height: clamp(64px, 12vmin, 110px);
+    width: clamp(160px, 44vw, 280px);
+    height: clamp(42px, 8vmin, 72px);
+    filter: drop-shadow(0 2px 8px rgba(89, 50, 155, 0.12));
 }
 
 .title-banner .eyebrow {
@@ -1612,7 +1614,7 @@ body[data-mode="leaderboard"] .bottom-bar {
     }
 
     .title-banner {
-        padding: 14px 20px 22px;
+        padding: 14px 20px 16px;
     }
 
     .title-hero {
