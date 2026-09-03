@@ -668,20 +668,24 @@ body[data-mode="paused"] .move-btn {
 
 .title-banner {
     background: var(--pp);
-    padding: 28px 24px 32px;
+    padding: 28px 24px 18px;
     text-align: center;
     position: relative;
+    z-index: 2;
 }
 
+/* Soft downward purple curve (dips in the middle), matching the mock */
 .title-banner::after {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 28px;
-    background: var(--card);
-    border-radius: 28px 28px 0 0;
+    left: -18%;
+    width: 136%;
+    bottom: -26px;
+    height: 52px;
+    background: var(--pp);
+    border-radius: 50%;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .banner-logo,
@@ -696,7 +700,7 @@ body[data-mode="paused"] .move-btn {
     width: clamp(168px, 44vw, 260px);
     height: clamp(48px, 9vmin, 76px);
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .title-banner .eyebrow {
@@ -711,7 +715,10 @@ body[data-mode="paused"] .move-btn {
 }
 
 .title-body {
-    padding: 18px 24px 0;
+    position: relative;
+    z-index: 0;
+    padding: 28px 24px 0;
+    background: var(--card);
 }
 
 .title-pane h2 {
@@ -731,7 +738,10 @@ body[data-mode="paused"] .move-btn {
 }
 
 .title-actions {
+    position: relative;
+    z-index: 0;
     padding: 0 24px 24px;
+    background: var(--card);
 }
 
 .open-cluster {
@@ -1623,7 +1633,16 @@ body[data-mode="leaderboard"] .bottom-bar {
     }
 
     .title-banner {
-        padding: 18px 20px 26px;
+        padding: 18px 20px 14px;
+    }
+
+    .title-banner::after {
+        bottom: -22px;
+        height: 44px;
+    }
+
+    .title-body {
+        padding: 24px 20px 0;
     }
 
     .title-hero {
