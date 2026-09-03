@@ -105,11 +105,42 @@
                     <input id="player-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210" autocomplete="tel" required>
                     <p id="name-error" class="name-error hidden"></p>
                 </div>
+                <label class="tnc-check" for="tnc-agree">
+                    <input id="tnc-agree" type="checkbox">
+                    <span>I agree to the <a href="#" id="tnc-link" class="tnc-link">Terms &amp; Conditions</a></span>
+                </label>
+                <p id="tnc-error" class="name-error hidden">Please accept the Terms &amp; Conditions to continue.</p>
                 <div class="panel-actions">
                     <button id="details-continue-btn" class="gold-btn" type="button">Continue →</button>
                 </div>
             </div>
         </section>
+
+        <div id="tnc-overlay" class="tnc-overlay hidden">
+            <div class="tnc-overlay-inner">
+                <div class="tnc-overlay-header">
+                    <h2>Terms &amp; Conditions</h2>
+                    <button id="tnc-close-btn" class="tnc-close" type="button" aria-label="Close">✕</button>
+                </div>
+                <div class="tnc-scroll" id="tnc-scroll-box" tabindex="0">
+                    <p>By continuing to play, you agree to these Terms &amp; Conditions. You allow PhonePe to use your details for notifying your winning status and coordinating the delivery of the prize you may have won.</p>
+                    <p><strong>Eligibility:</strong> Participation in the game is open to individuals aged 18 years and above.</p>
+                    <p><strong>Purpose of the Game:</strong> This game is an engagement activity organised by PhonePe and is intended purely for entertainment and participant engagement.</p>
+                    <p><strong>Scoring &amp; Leaderboard:</strong> The score earned by a participant during the game will be used to determine their position on the leaderboard.</p>
+                    <p><strong>Winners:</strong> The Top 10 participants on the leaderboard at the end of each event day will be eligible to receive one Nokia 105 feature phone each. The next 15 participants will be eligible to receive one PhonePe-branded umbrella each.</p>
+                    <p><strong>Verification:</strong> All winners will be subject to verification by PhonePe.</p>
+                    <p><strong>Final Scores:</strong> In case of a tie, the person who scored the high score earlier in the day will be selected.</p>
+                    <p><strong>Prizes:</strong> Prizes are non-transferable, non-exchangeable and cannot be substituted for cash or any other reward.</p>
+                    <p><strong>Prize Disclaimer:</strong> The Nokia 105 feature phone is provided on an "as is" basis. PhonePe shall not be responsible for any manufacturing defect, malfunction or warranty claim.</p>
+                    <p><strong>Prize Availability:</strong> PhonePe reserves the right to replace a specified prize with another of comparable value.</p>
+                    <p><strong>Technical Issues:</strong> PhonePe shall not be responsible for any failure, interruption or technical malfunction beyond its reasonable control.</p>
+                    <p><strong>Data &amp; Communication:</strong> By participating, you consent to PhonePe collecting and using your information for participation, notification and prize coordination purposes.</p>
+                    <p><strong>Photographs &amp; Event Content:</strong> Participants may be photographed or recorded during the event for documentation and promotional purposes.</p>
+                    <p><strong>Modification / Cancellation:</strong> PhonePe reserves the right to modify, suspend or cancel the game at any time.</p>
+                    <p><strong>Decision of PhonePe:</strong> PhonePe's decision regarding scoring, rankings, winner selection and prize distribution shall be final and binding.</p>
+                </div>
+            </div>
+        </div>
 
         <section id="screen-tnc" class="screen hidden">
             <button id="tnc-back-btn" class="back-tab" type="button">‹ Back</button>
@@ -148,9 +179,16 @@
         <section id="screen-message" class="screen hidden">
             <button id="message-back-btn" class="back-tab" type="button">‹ Back</button>
             <div class="panel message-panel">
-                <h2>Catch Your Way to Financial Freedom!</h2>
+                <h2>Catch Your Financial Freedom!</h2>
                 <p class="panel-copy">Financial barriers are broken. Start investing with small, bite-sized amounts.</p>
                 <ul class="product-tags">
+                    <li>
+                        <img src="assets/icon-silver.png?v=24" alt="">
+                        <div>
+                            <strong>Silver</strong>
+                            <span>+5</span>
+                        </div>
+                    </li>
                     <li>
                         <img src="assets/icon-gold.png?v=24" alt="">
                         <div>
@@ -163,13 +201,6 @@
                         <div>
                             <strong>SIP-MF</strong>
                             <span>+10</span>
-                        </div>
-                    </li>
-                    <li>
-                        <img src="assets/icon-silver.png?v=24" alt="">
-                        <div>
-                            <strong>Silver</strong>
-                            <span>+5</span>
                         </div>
                     </li>
                     <li>

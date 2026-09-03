@@ -403,10 +403,26 @@ class Game {
         $("play-btn").addEventListener("click", () => this.startRegistration());
         $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
-        $("tnc-back-btn").addEventListener("click", () => this.showScreen("details"));
-        $("tnc-continue-btn").addEventListener("click", () => this.requestPlay("tnc"));
+        $("tnc-back-btn")?.addEventListener("click", () => this.showScreen("details"));
+        $("tnc-continue-btn")?.addEventListener("click", () => this.requestPlay("tnc"));
         $("tnc-agree").addEventListener("change", () => this.syncTncGate());
-        $("message-back-btn").addEventListener("click", () => this.showScreen("tnc"));
+        $("tnc-link")?.addEventListener("click", (e) => { e.preventDefault(); this.openTncOverlay(); });
+        $("tnc-close-btn")?.addEventListener("click", () => this.closeTncOverlay());
+        $("tnc-overlay")?.addEventListener("click", (e) => { if (e.target === $("tnc-overlay")) this.closeTncOverlay(); });
+        const scrollBox = $("tnc-scroll-box");
+        if (scrollBox) {
+            scrollBox.addEventListener("scroll", () => {
+                const atBottom = scrollBox.scrollHeight - scrollBox.scrollTop - scrollBox.clientHeight < 20;
+                if (atBottom) {
+                    const box = $("tnc-agree");
+                    if (box && !box.checked) {
+                        box.checked = true;
+                        this.syncTncGate();
+                    }
+                }
+            });
+        }
+        $("message-back-btn")?.addEventListener("click", () => this.showScreen("tnc"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
         $("howto-back-btn").addEventListener("click", () => this.showScreen("message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
@@ -509,6 +525,16 @@ class Game {
         if (!phone || !isValidPhone(phone)) {
             return invalid("Enter a valid 10-digit phone number.", phoneField);
         }
+        const tncBox = $("tnc-agree");
+        if (!tncBox?.checked) {
+            const tncError = $("tnc-error");
+            if (tncError) {
+                tncError.textContent = "Please accept the Terms & Conditions to continue.";
+                tncError.classList.remove("hidden");
+            }
+            return false;
+        }
+        this.tncAccepted = true;
         this.playerName = name.slice(0, 16);
         this.playerPhone = normalizePhone(phone);
         const existing = this.loadScores().find((row) => normalizePhone(row.phone) === this.playerPhone || row.id === this.playerPhone);
@@ -548,9 +574,20 @@ class Game {
         this.syncTncGate(true);
     }
 
+    openTncOverlay() {
+        $("tnc-overlay")?.classList.remove("hidden");
+        const scrollBox = $("tnc-scroll-box");
+        if (scrollBox) scrollBox.scrollTop = 0;
+    }
+
+    closeTncOverlay() {
+        $("tnc-overlay")?.classList.add("hidden");
+    }
+
     syncTncGate(silent) {
         const box = $("tnc-agree");
         const btn = $("tnc-continue-btn");
+        const detailsBtn = $("details-continue-btn");
         const error = $("tnc-error");
         const agreed = Boolean(box?.checked);
         if (btn) btn.disabled = !agreed;
@@ -624,7 +661,7 @@ class Game {
             return;
         }
         if (from === "details") {
-            this.showScreen("tnc");
+            this.showScreen("message");
             return;
         }
         if (from === "tnc") {
@@ -632,7 +669,6 @@ class Game {
             this.showScreen("message");
             return;
         }
-        if ((from === "message" || from === "howto") && !this.tncAccepted && !this.ensureTnc()) return;
         if (from === "message") {
             this.showScreen("howto");
             return;
