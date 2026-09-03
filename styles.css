@@ -658,7 +658,7 @@ body[data-mode="paused"] .move-btn {
 }
 
 .title-banner {
-    background: var(--pp);
+    background: #fff;
     padding: 20px 24px 26px;
     text-align: center;
     position: relative;
@@ -678,19 +678,19 @@ body[data-mode="paused"] .move-btn {
 .banner-logo {
     margin: 0 auto 10px;
     object-position: center;
-    width: min(200px, 56vw);
-    height: 48px;
+    width: min(220px, 60vw);
+    height: 52px;
     padding: 0;
     border-radius: 0;
     background: transparent;
 }
 
 .banner-logo-white {
-    background: #fff;
-    padding: 8px 16px;
-    border-radius: 14px;
-    width: clamp(168px, 36vmin, 320px);
-    height: clamp(44px, 8vmin, 80px);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    width: clamp(180px, 42vmin, 340px);
+    height: clamp(48px, 9vmin, 88px);
 }
 
 .title-banner .eyebrow {
