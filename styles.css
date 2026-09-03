@@ -659,7 +659,7 @@ body[data-mode="paused"] .move-btn {
 
 .title-banner {
     background: #fff;
-    padding: 20px 24px 26px;
+    padding: 28px 24px 34px;
     text-align: center;
     position: relative;
 }
@@ -689,8 +689,8 @@ body[data-mode="paused"] .move-btn {
     background: transparent;
     padding: 0;
     border-radius: 0;
-    width: clamp(180px, 42vmin, 340px);
-    height: clamp(48px, 9vmin, 88px);
+    width: clamp(240px, 58vw, 420px);
+    height: clamp(64px, 12vmin, 110px);
 }
 
 .title-banner .eyebrow {
