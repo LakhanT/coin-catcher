@@ -688,11 +688,11 @@ body[data-mode="paused"] .move-btn {
 
 .banner-logo-white {
     background: #fff;
-    padding: 10px 24px;
-    border-radius: 14px;
-    width: clamp(220px, 52vw, 380px);
-    height: clamp(52px, 10vmin, 90px);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 12px 28px;
+    border-radius: 16px;
+    width: clamp(260px, 60vw, 460px);
+    height: clamp(60px, 12vmin, 110px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
 }
 
 .title-banner .eyebrow {
