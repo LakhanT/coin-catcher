@@ -10,11 +10,11 @@ const CONFIG = {
     duration: 30,
     basketCrossTime: 0.38,
     spawnStart: 1180,
-    spawnEnd: 480,
+    spawnEnd: 280,
     fallTimeStart: 1.85,
-    fallTimeEnd: 0.78,
+    fallTimeEnd: 0.44,
     maxItemsStart: 2,
-    maxItemsEnd: 5,
+    maxItemsEnd: 6,
     catchPoints: 10,
     missPoints: -10,
     comboStart: 2,
@@ -783,12 +783,12 @@ class Game {
         if (t < 8) {
             intensity = lerp(0, 0.18, t / 8);
         } else if (t < 18) {
-            intensity = lerp(0.18, 0.42, (t - 8) / 10);
+            intensity = lerp(0.18, 0.58, (t - 8) / 10);
         } else {
-            intensity = lerp(0.42, 0.62, (t - 18) / 12);
+            intensity = lerp(0.58, 1, (t - 18) / 12);
         }
-        const session = clamp(this.sessionLevel * 0.06, 0, 0.12);
-        return clamp(intensity + session, 0, 0.7);
+        const session = clamp(this.sessionLevel * 0.08, 0, 0.16);
+        return clamp(intensity + session, 0, 1);
     }
 
     spawnInterval() {
