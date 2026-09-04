@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=51">
+    <link rel="stylesheet" href="styles.css?v=52">
 </head>
 <body data-mode="title">
     <div class="app">
@@ -101,9 +101,10 @@
                     <p class="details-disclaimer">Disclaimer: copy to be confirmed.</p>
                     <p id="name-error" class="name-error hidden"></p>
                 </div>
-                <p class="tnc-inline">By continuing, you will review and accept the Terms &amp; Conditions.</p>
+                <p class="tnc-inline">Please read and accept the <button id="tnc-open-link" class="tnc-link" type="button">Terms &amp; Conditions</button>.</p>
+                <p id="tnc-status" class="tnc-status hidden">Terms &amp; Conditions accepted</p>
                 <div class="panel-actions">
-                    <button id="details-continue-btn" class="gold-btn" type="button">Continue →</button>
+                    <button id="details-continue-btn" class="gold-btn hidden" type="button" disabled>Continue →</button>
                 </div>
             </div>
         </section>
@@ -131,12 +132,14 @@
                     <p><strong>Modification / Cancellation:</strong> PhonePe reserves the right to modify, suspend or cancel the game at any time.</p>
                     <p><strong>Decision of PhonePe:</strong> PhonePe's decision regarding scoring, rankings, winner selection and prize distribution shall be final and binding.</p>
                     <p id="tnc-end-mark" class="tnc-end-mark">End of Terms &amp; Conditions</p>
+                    <label class="tnc-check" for="tnc-agree">
+                        <input id="tnc-agree" type="checkbox" disabled>
+                        I accept the Terms &amp; Conditions
+                    </label>
                 </div>
-                <div class="tnc-footer">
-                    <p id="tnc-scroll-hint" class="tnc-scroll-hint">Scroll to the bottom to continue</p>
+                <div id="tnc-footer" class="tnc-footer hidden">
                     <div class="tnc-footer-actions">
-                        <button id="tnc-notnow-btn" class="ghost-btn" type="button">Not now</button>
-                        <button id="tnc-agree-btn" class="gold-btn" type="button" disabled>I agree</button>
+                        <button id="tnc-continue-btn" class="gold-btn" type="button">Continue →</button>
                     </div>
                 </div>
             </div>
@@ -282,6 +285,6 @@
             </div>
         </section>
     </div>
-    <script src="game.js?v=51"></script>
+    <script src="game.js?v=52"></script>
 </body>
 </html>

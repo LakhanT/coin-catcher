@@ -379,9 +379,10 @@ class Game {
         $("board-back-btn")?.addEventListener("click", () => this.showScreen("title"));
         $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
-        $("tnc-agree-btn")?.addEventListener("click", () => this.acceptTnc());
-        $("tnc-notnow-btn")?.addEventListener("click", () => this.closeTncOverlay());
+        $("tnc-open-link")?.addEventListener("click", () => this.openTncOverlay());
+        $("tnc-continue-btn")?.addEventListener("click", () => this.acceptTnc());
         $("tnc-close-btn")?.addEventListener("click", () => this.closeTncOverlay());
+        $("tnc-agree")?.addEventListener("change", (e) => this.onTncTick(e.target.checked));
         const scrollBox = $("tnc-scroll-box");
         if (scrollBox) {
             scrollBox.addEventListener("scroll", () => this.checkTncScroll());
@@ -516,9 +517,12 @@ class Game {
     resetTnc() {
         this.tncAccepted = false;
         this.tncReadFull = false;
-        const agree = $("tnc-agree-btn");
-        if (agree) agree.disabled = true;
-        this.updateTncHints();
+        const box = $("tnc-agree");
+        if (box) {
+            box.checked = false;
+            box.disabled = true;
+        }
+        this.syncTncUi();
     }
 
     tncScrolledToEnd() {
@@ -531,32 +535,56 @@ class Game {
 
     checkTncScroll() {
         if (this.tncScrolledToEnd()) this.markTncRead();
-        else this.updateTncHints();
+        else this.syncTncUi();
     }
 
     markTncRead() {
         this.tncReadFull = true;
-        const agree = $("tnc-agree-btn");
-        if (agree) agree.disabled = false;
-        this.updateTncHints();
+        const box = $("tnc-agree");
+        if (box) box.disabled = false;
+        this.syncTncUi();
     }
 
-    updateTncHints() {
-        const hint = $("tnc-scroll-hint");
-        if (!hint) return;
-        hint.textContent = this.tncReadFull
-            ? "By clicking I agree, you accept these Terms & Conditions."
-            : "Scroll to the bottom to continue";
-        hint.classList.toggle("ready", this.tncReadFull);
+    onTncTick(checked) {
+        if (checked && !this.tncReadFull) {
+            const box = $("tnc-agree");
+            if (box) box.checked = false;
+            return;
+        }
+        this.tncAccepted = Boolean(checked);
+        if (this.tncAccepted) {
+            const error = $("name-error");
+            if (error?.textContent.includes("Terms")) {
+                error.textContent = "";
+                error.classList.add("hidden");
+            }
+        }
+        this.syncTncUi();
+    }
+
+    syncTncUi() {
+        const box = $("tnc-agree");
+        if (box) {
+            box.disabled = !this.tncReadFull;
+            box.checked = this.tncAccepted;
+        }
+        $("tnc-footer")?.classList.toggle("hidden", !this.tncAccepted);
+        const detailsBtn = $("details-continue-btn");
+        if (detailsBtn) {
+            detailsBtn.disabled = !this.tncAccepted;
+            detailsBtn.classList.toggle("hidden", !this.tncAccepted);
+        }
+        const status = $("tnc-status");
+        if (status) status.classList.toggle("hidden", !this.tncAccepted);
+        const link = $("tnc-open-link");
+        if (link) link.classList.toggle("accepted", this.tncAccepted);
     }
 
     openTncOverlay() {
         $("tnc-overlay")?.classList.remove("hidden");
         const scrollBox = $("tnc-scroll-box");
         if (scrollBox && !this.tncReadFull) scrollBox.scrollTop = 0;
-        const agree = $("tnc-agree-btn");
-        if (agree && !this.tncReadFull) agree.disabled = true;
-        this.updateTncHints();
+        this.syncTncUi();
         requestAnimationFrame(() => {
             this.checkTncScroll();
             scrollBox?.focus();
@@ -565,14 +593,11 @@ class Game {
 
     closeTncOverlay() {
         $("tnc-overlay")?.classList.add("hidden");
+        this.syncTncUi();
     }
 
     acceptTnc() {
-        if (!this.tncReadFull) {
-            this.openTncOverlay();
-            return;
-        }
-        this.tncAccepted = true;
+        if (!this.tncAccepted) return;
         this.closeTncOverlay();
         this.showScreen("message");
     }
@@ -627,7 +652,12 @@ class Game {
         }
         if (from === "details") {
             if (!this.tncAccepted) {
-                this.openTncOverlay();
+                const error = $("name-error");
+                if (error) {
+                    error.textContent = "Please read and accept the Terms & Conditions.";
+                    error.classList.remove("hidden");
+                }
+                $("tnc-open-link")?.focus();
                 return;
             }
             this.showScreen("message");
