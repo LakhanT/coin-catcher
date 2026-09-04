@@ -307,6 +307,7 @@ class Game {
         this.playerPhone = "";
         this.playerId = "";
         this.tncAccepted = false;
+        this.tncReadFull = false;
         this.currentScreen = "title";
         this.attractPhase = "hero";
         this.attractElapsed = 0;
@@ -378,22 +379,27 @@ class Game {
         $("board-back-btn")?.addEventListener("click", () => this.showScreen("title"));
         $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
-        $("tnc-agree")?.addEventListener("change", () => this.syncTncGate());
+        $("tnc-agree")?.addEventListener("change", () => {
+            if ($("tnc-agree").checked && !this.tncReadFull) {
+                $("tnc-agree").checked = false;
+                this.openTncOverlay();
+                this.syncTncGate();
+                return;
+            }
+            this.syncTncGate();
+        });
+        $("tnc-check-label")?.addEventListener("click", (e) => {
+            if (e.target.closest("a")) return;
+            if (this.tncReadFull) return;
+            e.preventDefault();
+            this.openTncOverlay();
+        });
         $("tnc-link")?.addEventListener("click", (e) => { e.preventDefault(); this.openTncOverlay(); });
         $("tnc-close-btn")?.addEventListener("click", () => this.closeTncOverlay());
         $("tnc-overlay")?.addEventListener("click", (e) => { if (e.target === $("tnc-overlay")) this.closeTncOverlay(); });
         const scrollBox = $("tnc-scroll-box");
         if (scrollBox) {
-            scrollBox.addEventListener("scroll", () => {
-                const atBottom = scrollBox.scrollHeight - scrollBox.scrollTop - scrollBox.clientHeight < 20;
-                if (atBottom) {
-                    const box = $("tnc-agree");
-                    if (box && !box.checked) {
-                        box.checked = true;
-                        this.syncTncGate();
-                    }
-                }
-            });
+            scrollBox.addEventListener("scroll", () => this.checkTncScroll());
         }
         $("message-back-btn")?.addEventListener("click", () => this.showScreen("details"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
@@ -418,6 +424,7 @@ class Game {
         $("player-name").value = "";
         $("player-phone").value = "";
         this.syncTncGate(true);
+        this.updateTncHints();
 
         const persistIfPlaying = () => {
             if (this.mode === "play" || this.mode === "results") this.saveScore();
@@ -491,6 +498,15 @@ class Game {
             return invalid("Enter a valid 10-digit phone number.", phoneField);
         }
         const tncBox = $("tnc-agree");
+        if (!this.tncReadFull) {
+            const tncError = $("tnc-error");
+            if (tncError) {
+                tncError.textContent = "Scroll the Terms & Conditions to the end, then tick I agree.";
+                tncError.classList.remove("hidden");
+            }
+            this.openTncOverlay();
+            return false;
+        }
         if (!tncBox?.checked) {
             const tncError = $("tnc-error");
             if (tncError) {
@@ -534,15 +550,62 @@ class Game {
 
     resetTnc() {
         this.tncAccepted = false;
+        this.tncReadFull = false;
         const box = $("tnc-agree");
-        if (box) box.checked = false;
+        if (box) {
+            box.checked = false;
+            box.disabled = true;
+        }
         this.syncTncGate(true);
+        this.updateTncHints();
+    }
+
+    tncScrolledToEnd() {
+        const el = $("tnc-scroll-box");
+        if (!el) return false;
+        const overflow = el.scrollHeight - el.clientHeight;
+        if (overflow < 8 || el.scrollTop < 8) return false;
+        return el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
+    }
+
+    checkTncScroll() {
+        if (this.tncScrolledToEnd()) this.markTncRead();
+    }
+
+    markTncRead() {
+        if (this.tncReadFull) {
+            this.updateTncHints();
+            return;
+        }
+        this.tncReadFull = true;
+        const box = $("tnc-agree");
+        if (box) box.disabled = false;
+        this.updateTncHints();
+        this.syncTncGate(true);
+    }
+
+    updateTncHints() {
+        const scrollHint = $("tnc-scroll-hint");
+        const readHint = $("tnc-read-hint");
+        if (scrollHint) {
+            scrollHint.textContent = this.tncReadFull
+                ? "You can now tick I agree"
+                : "Scroll to the end to accept";
+            scrollHint.classList.toggle("ready", this.tncReadFull);
+        }
+        if (readHint) {
+            readHint.textContent = this.tncReadFull
+                ? "Terms read. Tick the box to continue."
+                : "Open the terms and scroll to the end before you can tick this box.";
+        }
     }
 
     openTncOverlay() {
         $("tnc-overlay")?.classList.remove("hidden");
         const scrollBox = $("tnc-scroll-box");
-        if (scrollBox) scrollBox.scrollTop = 0;
+        if (scrollBox && !this.tncReadFull) scrollBox.scrollTop = 0;
+        this.updateTncHints();
+        requestAnimationFrame(() => this.checkTncScroll());
     }
 
     closeTncOverlay() {
