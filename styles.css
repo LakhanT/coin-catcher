@@ -118,19 +118,20 @@ button {
 }
 
 .top-bar {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: auto auto minmax(0, 1fr);
     min-height: 0;
 }
 
 .brand {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    justify-self: end;
     width: var(--hud-logo);
     height: clamp(32px, 5.2vmin, 64px);
-    background: #fff;
-    padding: clamp(2px, 0.35vmin, 4px) clamp(4px, 0.7vmin, 8px);
-    border-radius: 12px;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
     overflow: hidden;
 }
 
@@ -629,6 +630,34 @@ body[data-mode="paused"] .move-btn {
     transform: translateY(1px);
 }
 
+.home-logo-tr {
+    position: absolute;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 16;
+    width: clamp(96px, 18vmin, 168px);
+    height: auto;
+    pointer-events: none;
+}
+
+.details-disclaimer {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: left;
+    line-height: 1.4;
+}
+
+.score-explain {
+    margin: 14px 0 0;
+    color: #efe6fb;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: left;
+}
+
 .screen {
     position: fixed;
     inset: 0;
@@ -644,9 +673,9 @@ body[data-mode="paused"] .move-btn {
 }
 
 #screen-details,
-#screen-tnc,
 #screen-message,
-#screen-howto {
+#screen-howto,
+#screen-leaderboard {
     padding-top: max(68px, calc(env(safe-area-inset-top) + 54px));
 }
 
@@ -1519,7 +1548,7 @@ body[data-mode="leaderboard"] .bottom-bar {
     }
 
     .top-bar {
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: auto auto minmax(0, 1fr);
     }
 
     .brand {
@@ -1542,7 +1571,6 @@ body[data-mode="leaderboard"] .bottom-bar {
     }
 
     .tip-chip,
-    #pause-btn,
     .move-hint,
     .controls-cluster {
         display: none;
@@ -1562,13 +1590,6 @@ body[data-mode="leaderboard"] .bottom-bar {
 
     .live-board-head strong {
         font-size: 0.62rem;
-    }
-
-    body[data-mode="play"] .field-pause,
-    body[data-mode="paused"] .field-pause,
-    body[data-mode="play"] .icon-btn.field-pause,
-    body[data-mode="paused"] .icon-btn.field-pause {
-        display: flex;
     }
 
     .score-chip {

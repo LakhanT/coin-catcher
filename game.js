@@ -2,7 +2,7 @@ const BRAND = {
     name: "PhonePe",
     gameTitle: "Big Wealth Starts Small!",
     tagline: "Catch micro-saving products. Build macro wealth.",
-    logo: "https://www.phonepe.com/webstatic/14848/images/home/ppl.svg",
+    logo: "assets/logo-phonepe-on-dark.svg",
 };
 
 const CONFIG = {
@@ -10,18 +10,13 @@ const CONFIG = {
     duration: 30,
     basketCrossTime: 0.38,
     spawnStart: 1180,
-    spawnEnd: 280,
+    spawnEnd: 480,
     fallTimeStart: 1.85,
-    fallTimeEnd: 0.44,
+    fallTimeEnd: 0.78,
     maxItemsStart: 2,
-    maxItemsEnd: 6,
+    maxItemsEnd: 5,
     catchPoints: 10,
     missPoints: -10,
-    scoreDecimals: 3,
-    displayDecimals: 1,
-    precisionMin: 0.041,
-    precisionMax: 1.279,
-    precisionPower: 2.2,
     comboStart: 2,
     comboMax: 5,
     fallAccelTime: 0.36,
@@ -261,43 +256,18 @@ function lerp(a, b, t) {
 }
 
 function roundScore(value) {
-    const scale = 10 ** (CONFIG.scoreDecimals || 3);
-    return Math.round((Number(value) || 0) * scale) / scale;
+    return Math.round(Number(value) || 0);
 }
 
-function formatScore(value, digits = CONFIG.displayDecimals || 1) {
-    const scale = 10 ** digits;
-    const n = Math.round((Number(value) || 0) * scale) / scale;
-    return n.toFixed(digits);
-}
-
-function tiedDisplayScores(rows) {
-    const counts = new Map();
-    for (const row of rows || []) {
-        const key = formatScore(row.score);
-        counts.set(key, (counts.get(key) || 0) + 1);
-    }
-    const tied = new Set();
-    for (const [key, count] of counts) {
-        if (count > 1) tied.add(key);
-    }
-    return tied;
-}
-
-function formatScoreMaybeFine(value, rowsOrTied) {
-    const tied = rowsOrTied instanceof Set ? rowsOrTied : tiedDisplayScores(rowsOrTied);
-    const coarse = formatScore(value);
-    if (tied.has(coarse)) {
-        return formatScore(value, CONFIG.scoreDecimals || 3);
-    }
-    return coarse;
+function formatScore(value) {
+    return String(roundScore(value));
 }
 
 function formatDelta(points) {
-    const n = Number(formatScore(points));
-    if (n > 0) return `+${formatScore(points)}`;
-    if (n < 0) return `−${formatScore(Math.abs(points))}`;
-    return formatScore(0);
+    const n = roundScore(points);
+    if (n > 0) return `+${n}`;
+    if (n < 0) return `−${Math.abs(n)}`;
+    return "0";
 }
 
 function isValidPhone(phone) {
@@ -400,11 +370,15 @@ class Game {
         });
 
         $("play-btn").addEventListener("click", () => this.startRegistration());
+        $("title-board-btn")?.addEventListener("click", () => {
+            this.stopAttractRotation();
+            this.renderBoards();
+            this.showScreen("leaderboard");
+        });
+        $("board-back-btn")?.addEventListener("click", () => this.showScreen("title"));
         $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
-        $("tnc-back-btn")?.addEventListener("click", () => this.showScreen("details"));
-        $("tnc-continue-btn")?.addEventListener("click", () => this.requestPlay("tnc"));
-        $("tnc-agree").addEventListener("change", () => this.syncTncGate());
+        $("tnc-agree")?.addEventListener("change", () => this.syncTncGate());
         $("tnc-link")?.addEventListener("click", (e) => { e.preventDefault(); this.openTncOverlay(); });
         $("tnc-close-btn")?.addEventListener("click", () => this.closeTncOverlay());
         $("tnc-overlay")?.addEventListener("click", (e) => { if (e.target === $("tnc-overlay")) this.closeTncOverlay(); });
@@ -421,19 +395,12 @@ class Game {
                 }
             });
         }
-        $("message-back-btn")?.addEventListener("click", () => this.showScreen("tnc"));
+        $("message-back-btn")?.addEventListener("click", () => this.showScreen("details"));
         $("message-go-btn").addEventListener("click", () => this.requestPlay("message"));
         $("howto-back-btn").addEventListener("click", () => this.showScreen("message"));
         $("howto-play-btn").addEventListener("click", () => this.requestPlay("howto"));
         this.bindHold($("move-left"), -1);
         this.bindHold($("move-right"), 1);
-        $("pause-btn").addEventListener("click", () => this.togglePause());
-        $("field-pause").addEventListener("click", () => this.togglePause());
-        $("resume-btn").addEventListener("click", () => this.togglePause(false));
-        $("pause-home-btn").addEventListener("click", () => {
-            this.saveScore();
-            this.goHome();
-        });
         $("replay-btn").addEventListener("click", () => {
             this.saveScore();
             this.beginCountdown();
@@ -453,7 +420,7 @@ class Game {
         this.syncTncGate(true);
 
         const persistIfPlaying = () => {
-            if (this.mode === "play" || this.mode === "paused" || this.mode === "results") this.saveScore();
+            if (this.mode === "play" || this.mode === "results") this.saveScore();
         };
         window.addEventListener("pagehide", persistIfPlaying);
         window.addEventListener("beforeunload", persistIfPlaying);
@@ -487,8 +454,7 @@ class Game {
         if (["ArrowLeft", "ArrowRight", "Space"].includes(event.code) && this.mode === "play") {
             event.preventDefault();
         }
-        if (event.key === "Escape") this.togglePause();
-        if ((event.key === "p" || event.key === "P") && this.mode === "play") this.togglePause();
+        if (event.key === "Escape" && this.mode === "play") event.preventDefault();
     }
 
     nudgeFromPointer(event) {
@@ -585,11 +551,10 @@ class Game {
 
     syncTncGate(silent) {
         const box = $("tnc-agree");
-        const btn = $("tnc-continue-btn");
         const detailsBtn = $("details-continue-btn");
         const error = $("tnc-error");
         const agreed = Boolean(box?.checked);
-        if (btn) btn.disabled = !agreed;
+        if (detailsBtn) detailsBtn.disabled = !agreed;
         if (error && (silent || agreed)) error.classList.add("hidden");
     }
 
@@ -684,14 +649,14 @@ class Game {
         const mode = name === "pause" ? "paused" : name;
         document.body.dataset.mode = mode;
 
-        if (name === "title" || name === "howto" || name === "message" || name === "details" || name === "tnc") {
+        if (name === "title" || name === "howto" || name === "message" || name === "details" || name === "leaderboard") {
             this.mode = "attract";
         }
         if (name === "title") {
             this.setAttractPane("hero");
             this.attractRotating = false;
         }
-        if (name === "details" || name === "tnc" || name === "message" || name === "howto") {
+        if (name === "details" || name === "message" || name === "howto" || name === "leaderboard") {
             this.stopAttractRotation();
         }
         if (name === "howto") storageSetRaw("coinCatcherHowToSeen", "1");
@@ -755,19 +720,6 @@ class Game {
         document.body.dataset.mode = "play";
     }
 
-    togglePause(force) {
-        if (this.mode !== "play" && this.mode !== "paused") return;
-        const shouldPause = force === undefined ? this.mode === "play" : force;
-        if (shouldPause) {
-            this.mode = "paused";
-            this.showScreen("pause");
-        } else {
-            this.mode = "play";
-            this.showScreenPlayChrome();
-            this.lastTs = performance.now();
-        }
-    }
-
     resize() {
         const field = $("playfield");
         const rect = field.getBoundingClientRect();
@@ -801,12 +753,12 @@ class Game {
         if (t < 8) {
             intensity = lerp(0, 0.18, t / 8);
         } else if (t < 18) {
-            intensity = lerp(0.18, 0.58, (t - 8) / 10);
+            intensity = lerp(0.18, 0.42, (t - 8) / 10);
         } else {
-            intensity = lerp(0.58, 1, (t - 18) / 12);
+            intensity = lerp(0.42, 0.62, (t - 18) / 12);
         }
-        const session = clamp(this.sessionLevel * 0.08, 0, 0.16);
-        return clamp(intensity + session, 0, 1);
+        const session = clamp(this.sessionLevel * 0.06, 0, 0.12);
+        return clamp(intensity + session, 0, 0.7);
     }
 
     spawnInterval() {
@@ -1089,18 +1041,6 @@ class Game {
             && cy <= zone.y + zone.height;
     }
 
-    catchPrecision(item, zone) {
-        const cx = item.x + item.size / 2;
-        const cy = item.y + item.size * 0.62;
-        const midX = zone.x + zone.width / 2;
-        const midY = zone.y + zone.height / 2;
-        const nx = (cx - midX) / (zone.width / 2 || 1);
-        const ny = (cy - midY) / (zone.height / 2 || 1);
-        const dist = clamp(Math.hypot(nx, ny) / Math.SQRT2, 0, 1);
-        const centered = (1 - dist) ** CONFIG.precisionPower;
-        return CONFIG.precisionMin + (CONFIG.precisionMax - CONFIG.precisionMin) * centered;
-    }
-
     comboMultiplier(count) {
         return clamp(count, 1, CONFIG.comboMax || 5);
     }
@@ -1112,8 +1052,7 @@ class Game {
 
     catchItem(item) {
         this.combo += 1;
-        const zone = this.catchMouth();
-        const base = (item.def.points || CONFIG.catchPoints) + this.catchPrecision(item, zone);
+        const base = item.def.points || CONFIG.catchPoints;
         const points = base * this.comboMultiplier(this.combo);
         this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
@@ -1124,7 +1063,7 @@ class Game {
     missItem(item) {
         this.combo = 0;
         this.stats.missed += 1;
-        const penalty = CONFIG.missPoints - (this.stats.missed * 0.1);
+        const penalty = CONFIG.missPoints;
         const x = item.x + item.size / 2;
         const y = this.h - this.spritePx(28);
         this.applyScore(penalty, x, y, "#ff5d7a", false);
@@ -1175,7 +1114,7 @@ class Game {
     boardEntries() {
         const youName = this.currentPlayerName();
         const youPhone = normalizePhone(this.playerPhone);
-        const overlayLive = ["countdown", "play", "paused", "results"].includes(this.mode);
+        const overlayLive = ["countdown", "play", "results"].includes(this.mode);
         const saved = this.loadScores();
         const rows = [];
         let sawYou = false;
@@ -1237,14 +1176,13 @@ class Game {
         const you = $("live-board-you");
         if (!list || !you) return;
         const myIndex = rows.findIndex((row) => row.me);
-        const tied = tiedDisplayScores(rows);
         list.innerHTML = rows.map((row, i) => {
             const prev = this.prevRanks[row.id];
             const move = prev == null || prev === i ? "" : prev > i ? " up" : " down";
             return `<div class="live-row${row.me ? " me" : ""}${move}" data-id="${row.id}">
                 <span class="rank">#${i + 1}</span>
                 <span class="who">${this.boardLabel(row)}</span>
-                <span class="pts">${formatScoreMaybeFine(row.score, tied)}</span>
+                <span class="pts">${formatScore(row.score)}</span>
             </div>`;
         }).join("");
         this.prevRanks = Object.fromEntries(rows.map((row, i) => [row.id, i]));
@@ -1262,7 +1200,6 @@ class Game {
     }
 
     renderLeaderboard(rows = this.boardEntries()) {
-        const tied = tiedDisplayScores(rows);
         const html = !rows.length
             ? `<p class="empty-board">No scores yet. Play a round and save your name.</p>`
             : `
@@ -1271,7 +1208,7 @@ class Game {
                 <div class="score-entry${row.me ? " me" : ""}">
                     <div class="rank">#${i + 1}</div>
                     <div>${this.boardLabel(row)}</div>
-                    <div>${formatScoreMaybeFine(row.score, tied)}</div>
+                    <div>${formatScore(row.score)}</div>
                 </div>
             `).join("")}
         `;
@@ -1344,10 +1281,10 @@ class Game {
         const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
         const isBest = this.score > personal && this.score > 0;
         const board = this.boardEntries();
-        if ($("final-score")) $("final-score").textContent = formatScoreMaybeFine(this.score, board);
+        if ($("final-score")) $("final-score").textContent = formatScore(this.score, board);
         if ($("caught-count")) $("caught-count").textContent = caught;
         if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
-        if ($("total-count")) $("total-count").textContent = formatScoreMaybeFine(this.score, board);
+        if ($("total-count")) $("total-count").textContent = formatScore(this.score, board);
         if ($("results-note")) {
             $("results-note").textContent = isBest ? `NEW PERSONAL BEST · ${this.playerName}` : "";
         }
@@ -1393,9 +1330,9 @@ class Game {
         this.scoreSaved = true;
         const stored = this.bestForPlayer(phone);
         const board = this.loadScores();
-        let message = `Saved ${formatScoreMaybeFine(stored, board)} for ${name}.`;
-        if (this.score > previous) message = `New best for ${name}: ${formatScoreMaybeFine(this.score, board)}.`;
-        else if (previous > this.score) message = `Best for ${name} stays ${formatScoreMaybeFine(previous, board)}.`;
+        let message = `Saved ${formatScore(stored, board)} for ${name}.`;
+        if (this.score > previous) message = `New best for ${name}: ${formatScore(this.score, board)}.`;
+        else if (previous > this.score) message = `Best for ${name} stays ${formatScore(previous, board)}.`;
         const status = $("save-status");
         if (status) {
             status.textContent = message;
@@ -1410,7 +1347,7 @@ class Game {
         const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
         const ss = String(seconds % 60).padStart(2, "0");
         if ($("timer-value")) $("timer-value").textContent = `${mm}:${ss}`;
-        if ($("score-value")) $("score-value").textContent = formatScoreMaybeFine(this.score, this.boardEntries());
+        if ($("score-value")) $("score-value").textContent = formatScore(this.score, this.boardEntries());
         $("timer-chip")?.classList.toggle("urgent", this.mode === "play" && seconds <= 10);
     }
 
