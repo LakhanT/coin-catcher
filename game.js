@@ -19,6 +19,7 @@ const CONFIG = {
     missPoints: -10,
     comboStart: 2,
     comboMax: 5,
+    scoreStep: 5,
     fallAccelTime: 0.36,
     itemGap: 22,
     mobileSprite: 0.4,
@@ -256,7 +257,48 @@ function lerp(a, b, t) {
 }
 
 function roundScore(value) {
-    return Math.round(Number(value) || 0);
+    const step = CONFIG.scoreStep || 5;
+    const n = Number(value) || 0;
+    return Math.max(0, Math.round(n / step) * step);
+}
+
+function rankScoreRows(a, b) {
+    return (b.score - a.score)
+        || ((a.missed ?? Infinity) - (b.missed ?? Infinity))
+        || ((b.at || 0) - (a.at || 0))
+        || String(a.name || "").localeCompare(String(b.name || ""));
+}
+
+function uniqueScores(rows) {
+    const step = CONFIG.scoreStep || 5;
+    const ranked = [...(rows || [])].sort(rankScoreRows);
+    const groups = new Map();
+    for (const row of ranked) {
+        const base = roundScore(row.score);
+        if (!groups.has(base)) groups.set(base, []);
+        groups.get(base).push(row);
+    }
+    const used = new Set();
+    const byKey = new Map();
+    for (const row of ranked) {
+        const key = playerKey(row) || String(row.id || "");
+        const base = roundScore(row.score);
+        const group = groups.get(base) || [row];
+        const idx = group.indexOf(row);
+        const bonus = group.length > 1 ? (idx === 0 ? 10 : 5) : 0;
+        let score = roundScore(base + bonus);
+        while (used.has(score) && score >= step) score -= step;
+        if (used.has(score)) {
+            score = roundScore(base + bonus);
+            while (used.has(score)) score += step;
+        }
+        used.add(score);
+        byKey.set(key, score);
+    }
+    return (rows || []).map((row) => ({
+        ...row,
+        score: byKey.get(playerKey(row) || String(row.id || "")) ?? roundScore(row.score),
+    })).sort(rankScoreRows);
 }
 
 function formatScore(value) {
@@ -1083,7 +1125,7 @@ class Game {
     catchItem(item) {
         this.combo += 1;
         const base = item.def.points || CONFIG.catchPoints;
-        const points = base * this.comboMultiplier(this.combo);
+        const points = roundScore(base * this.comboMultiplier(this.combo));
         this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
         this.basketGlow = 0.55;
@@ -1182,12 +1224,7 @@ class Game {
             });
         }
 
-        return rows.sort((a, b) =>
-            b.score - a.score
-            || (a.missed ?? Infinity) - (b.missed ?? Infinity)
-            || (b.at || 0) - (a.at || 0)
-            || String(a.name).localeCompare(String(b.name))
-        );
+        return uniqueScores(rows);
     }
 
     boardLabel(row) {
@@ -1311,10 +1348,12 @@ class Game {
         const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
         const isBest = this.score > personal && this.score > 0;
         const board = this.boardEntries();
-        if ($("final-score")) $("final-score").textContent = formatScore(this.score, board);
+        const me = board.find((row) => row.me);
+        const shown = me ? me.score : this.score;
+        if ($("final-score")) $("final-score").textContent = formatScore(shown);
         if ($("caught-count")) $("caught-count").textContent = caught;
         if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
-        if ($("total-count")) $("total-count").textContent = formatScore(this.score, board);
+        if ($("total-count")) $("total-count").textContent = formatScore(shown);
         if ($("results-note")) {
             $("results-note").textContent = isBest ? `NEW PERSONAL BEST · ${this.playerName}` : "";
         }
@@ -1332,7 +1371,7 @@ class Game {
     }
 
     uniqueScores(rows) {
-        return normalizeScores(rows);
+        return uniqueScores(rows);
     }
 
     loadScores() {
@@ -1377,7 +1416,8 @@ class Game {
         const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
         const ss = String(seconds % 60).padStart(2, "0");
         if ($("timer-value")) $("timer-value").textContent = `${mm}:${ss}`;
-        if ($("score-value")) $("score-value").textContent = formatScore(this.score, this.boardEntries());
+        const me = this.boardEntries().find((row) => row.me);
+        if ($("score-value")) $("score-value").textContent = formatScore(me ? me.score : this.score);
         $("timer-chip")?.classList.toggle("urgent", this.mode === "play" && seconds <= 10);
     }
 
