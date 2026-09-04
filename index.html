@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=49">
+    <link rel="stylesheet" href="styles.css?v=51">
 </head>
 <body data-mode="title">
     <div class="app">
@@ -101,22 +101,17 @@
                     <p class="details-disclaimer">Disclaimer: copy to be confirmed.</p>
                     <p id="name-error" class="name-error hidden"></p>
                 </div>
-                <label class="tnc-check" id="tnc-check-label" for="tnc-agree">
-                    <input id="tnc-agree" type="checkbox" disabled>
-                    <span>I agree to the <a href="#" id="tnc-link" class="tnc-link">Terms &amp; Conditions</a></span>
-                </label>
-                <p id="tnc-read-hint" class="tnc-read-hint">Open the terms and scroll to the end before you can tick this box.</p>
-                <p id="tnc-error" class="name-error hidden">Please accept the Terms &amp; Conditions to continue.</p>
+                <p class="tnc-inline">By continuing, you will review and accept the Terms &amp; Conditions.</p>
                 <div class="panel-actions">
-                    <button id="details-continue-btn" class="gold-btn" type="button" disabled>Continue →</button>
+                    <button id="details-continue-btn" class="gold-btn" type="button">Continue →</button>
                 </div>
             </div>
         </section>
 
-        <div id="tnc-overlay" class="tnc-overlay hidden">
+        <div id="tnc-overlay" class="tnc-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="tnc-title">
             <div class="tnc-overlay-inner">
                 <div class="tnc-overlay-header">
-                    <h2>Terms &amp; Conditions</h2>
+                    <h2 id="tnc-title">Terms &amp; Conditions</h2>
                     <button id="tnc-close-btn" class="tnc-close" type="button" aria-label="Close">✕</button>
                 </div>
                 <div class="tnc-scroll" id="tnc-scroll-box" tabindex="0">
@@ -136,9 +131,14 @@
                     <p><strong>Modification / Cancellation:</strong> PhonePe reserves the right to modify, suspend or cancel the game at any time.</p>
                     <p><strong>Decision of PhonePe:</strong> PhonePe's decision regarding scoring, rankings, winner selection and prize distribution shall be final and binding.</p>
                     <p id="tnc-end-mark" class="tnc-end-mark">End of Terms &amp; Conditions</p>
-                    <div class="tnc-scroll-spacer" aria-hidden="true"></div>
                 </div>
-                <p id="tnc-scroll-hint" class="tnc-scroll-hint">Scroll to the end to accept</p>
+                <div class="tnc-footer">
+                    <p id="tnc-scroll-hint" class="tnc-scroll-hint">Scroll to the bottom to continue</p>
+                    <div class="tnc-footer-actions">
+                        <button id="tnc-notnow-btn" class="ghost-btn" type="button">Not now</button>
+                        <button id="tnc-agree-btn" class="gold-btn" type="button" disabled>I agree</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -282,6 +282,6 @@
             </div>
         </section>
     </div>
-    <script src="game.js?v=49"></script>
+    <script src="game.js?v=51"></script>
 </body>
 </html>
