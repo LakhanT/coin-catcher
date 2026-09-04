@@ -256,10 +256,14 @@ function lerp(a, b, t) {
     return a + (b - a) * clamp(t, 0, 1);
 }
 
-function roundScore(value) {
+function snapScore(value) {
     const step = CONFIG.scoreStep || 5;
     const n = Number(value) || 0;
-    return Math.max(0, Math.round(n / step) * step);
+    return Math.round(n / step) * step;
+}
+
+function roundScore(value) {
+    return Math.max(0, snapScore(value));
 }
 
 function rankScoreRows(a, b) {
@@ -306,7 +310,7 @@ function formatScore(value) {
 }
 
 function formatDelta(points) {
-    const n = roundScore(points);
+    const n = snapScore(points);
     if (n > 0) return `+${n}`;
     if (n < 0) return `−${Math.abs(n)}`;
     return "0";
@@ -1198,8 +1202,9 @@ class Game {
             const id = String(row.id || "").trim() || phone || `legacy-${name.toLowerCase()}`;
             const me = Boolean(youPhone) && (phone === youPhone || id === youPhone);
             const savedScore = Number(row.score) || 0;
-            const score = me && overlayLive ? Math.max(savedScore, this.score) : savedScore;
-            const missed = me && overlayLive ? this.stats.missed : (Number(row.missed) || 0);
+            const liveRound = this.mode === "countdown" || this.mode === "play";
+            const score = me && liveRound ? this.score : savedScore;
+            const missed = me && liveRound ? this.stats.missed : (Number(row.missed) || 0);
             if (me) sawYou = true;
             rows.push({
                 id,
@@ -1347,13 +1352,10 @@ class Game {
         const caught = this.stats.gold + this.stats.silver + this.stats.platinum + this.stats.rd + this.stats.sip;
         const personal = this.roundStartBest ?? this.bestForPlayer(this.playerPhone);
         const isBest = this.score > personal && this.score > 0;
-        const board = this.boardEntries();
-        const me = board.find((row) => row.me);
-        const shown = me ? me.score : this.score;
-        if ($("final-score")) $("final-score").textContent = formatScore(shown);
+        if ($("final-score")) $("final-score").textContent = formatScore(this.score);
         if ($("caught-count")) $("caught-count").textContent = caught;
         if ($("missed-count")) $("missed-count").textContent = this.stats.missed;
-        if ($("total-count")) $("total-count").textContent = formatScore(shown);
+        if ($("total-count")) $("total-count").textContent = formatScore(this.score);
         if ($("results-note")) {
             $("results-note").textContent = isBest ? `NEW PERSONAL BEST · ${this.playerName}` : "";
         }
@@ -1416,8 +1418,7 @@ class Game {
         const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
         const ss = String(seconds % 60).padStart(2, "0");
         if ($("timer-value")) $("timer-value").textContent = `${mm}:${ss}`;
-        const me = this.boardEntries().find((row) => row.me);
-        if ($("score-value")) $("score-value").textContent = formatScore(me ? me.score : this.score);
+        if ($("score-value")) $("score-value").textContent = formatScore(this.score);
         $("timer-chip")?.classList.toggle("urgent", this.mode === "play" && seconds <= 10);
     }
 
