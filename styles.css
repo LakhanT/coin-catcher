@@ -20,7 +20,7 @@
     --hud-logo: clamp(120px, 22vmin, 280px);
     --chip-min: clamp(108px, 16vmin, 220px);
     --move: clamp(48px, 8.4vmin, 108px);
-    --panel: min(94vw, clamp(300px, 54vmin, 960px));
+    --panel: min(calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), clamp(280px, 54vmin, 960px));
     --radius: clamp(14px, 2.2vmin, 28px);
 }
 
@@ -681,7 +681,8 @@ body[data-mode="paused"] .move-btn {
 
 .title-shell,
 .panel {
-    width: var(--panel);
+    width: min(var(--panel), 100%);
+    max-width: 100%;
     margin-top: auto;
     margin-bottom: auto;
     flex: 0 0 auto;
@@ -918,8 +919,9 @@ body[data-mode="paused"] .move-btn {
     color: #efe6ff;
     font-size: 0.94rem;
     line-height: 1.5;
-    max-width: 480px;
+    max-width: min(480px, 100%);
     margin: 14px auto 0;
+    overflow-wrap: break-word;
 }
 
 .title-actions,
@@ -958,9 +960,10 @@ body[data-mode="paused"] .move-btn {
 
 .panel h2 {
     margin: 0;
-    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-size: clamp(1.2rem, 4.6vw, 1.75rem);
     letter-spacing: -0.02em;
     color: #fff;
+    overflow-wrap: break-word;
 }
 
 .howto-grid {
@@ -1448,6 +1451,21 @@ body[data-mode="paused"] .move-btn {
     height: 72px;
     margin: 0 auto 12px;
     object-fit: contain;
+}
+
+.results-panel {
+    text-align: center;
+    padding-left: clamp(18px, 5vw, 32px);
+    padding-right: clamp(18px, 5vw, 32px);
+}
+
+.results-panel h2 {
+    padding-inline: 2px;
+    line-height: 1.2;
+}
+
+.results-panel .panel-copy {
+    width: 100%;
 }
 
 .name-error {
