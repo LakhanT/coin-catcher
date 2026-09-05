@@ -238,7 +238,7 @@ ScoreStore.load();
 
 const ITEMS = {
     gold: { id: "gold", label: "Gold", points: 10, src: "assets/icon-gold.png?v=24", size: 104, glow: "#f0b429", trail: "rgba(240, 180, 41, 0.22)", weight: 48, fall: 1.22, spin: 2.4, good: true },
-    sip: { id: "sip", label: "SIP-MF", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 24, fall: 1.08, spin: 0.6, good: true },
+    sip: { id: "sip", label: "Daily SIP", points: 10, src: "assets/icon-invest.png?v=7", size: 100, glow: "#4ade80", trail: "rgba(74, 222, 128, 0.22)", weight: 24, fall: 1.08, spin: 0.6, good: true },
     silver: { id: "silver", label: "Silver", points: 5, src: "assets/icon-silver.png?v=24", size: 100, glow: "#9aa4b2", trail: "rgba(154, 164, 178, 0.22)", weight: 16, fall: 0.96, spin: 1.8, good: true },
     platinum: { id: "platinum", label: "Platinum", points: 50, src: "assets/icon-platinum.png?v=24", size: 108, glow: "#8d9aab", trail: "rgba(141, 154, 171, 0.22)", weight: 8, fall: 0.8, spin: 1.2, good: true },
     rd: { id: "rd", label: "Daily RD", points: 100, src: "assets/icon-savings.png?v=7", size: 100, glow: "#f472b6", trail: "rgba(244, 114, 182, 0.22)", weight: 4, fall: 0.66, spin: 0.45, good: true },
@@ -425,8 +425,11 @@ class Game {
         $("board-back-btn")?.addEventListener("click", () => this.showScreen("title"));
         $("details-back-btn").addEventListener("click", () => this.showScreen("title"));
         $("details-continue-btn").addEventListener("click", () => this.requestPlay("details"));
-        $("tnc-open-link")?.addEventListener("click", () => this.openTncOverlay());
-        $("tnc-continue-btn")?.addEventListener("click", () => this.acceptTnc());
+        $("tnc-open-link")?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.openTncOverlay();
+        });
         $("tnc-close-btn")?.addEventListener("click", () => this.closeTncOverlay());
         $("tnc-agree")?.addEventListener("change", (e) => this.onTncTick(e.target.checked));
         const scrollBox = $("tnc-scroll-box");
@@ -566,7 +569,7 @@ class Game {
         const box = $("tnc-agree");
         if (box) {
             box.checked = false;
-            box.disabled = true;
+            box.disabled = false;
         }
         this.syncTncUi();
     }
@@ -586,17 +589,21 @@ class Game {
 
     markTncRead() {
         this.tncReadFull = true;
+        this.tncAccepted = true;
         const box = $("tnc-agree");
-        if (box) box.disabled = false;
+        if (box) {
+            box.disabled = false;
+            box.checked = true;
+        }
+        const error = $("name-error");
+        if (error?.textContent.includes("Terms")) {
+            error.textContent = "";
+            error.classList.add("hidden");
+        }
         this.syncTncUi();
     }
 
     onTncTick(checked) {
-        if (checked && !this.tncReadFull) {
-            const box = $("tnc-agree");
-            if (box) box.checked = false;
-            return;
-        }
         this.tncAccepted = Boolean(checked);
         if (this.tncAccepted) {
             const error = $("name-error");
@@ -611,17 +618,12 @@ class Game {
     syncTncUi() {
         const box = $("tnc-agree");
         if (box) {
-            box.disabled = !this.tncReadFull;
+            box.disabled = false;
             box.checked = this.tncAccepted;
         }
-        $("tnc-footer")?.classList.toggle("hidden", !this.tncAccepted);
+        $("tnc-check-row")?.classList.toggle("accepted", this.tncAccepted);
         const detailsBtn = $("details-continue-btn");
-        if (detailsBtn) {
-            detailsBtn.disabled = !this.tncAccepted;
-            detailsBtn.classList.toggle("hidden", !this.tncAccepted);
-        }
-        const status = $("tnc-status");
-        if (status) status.classList.toggle("hidden", !this.tncAccepted);
+        if (detailsBtn) detailsBtn.disabled = !this.tncAccepted;
         const link = $("tnc-open-link");
         if (link) link.classList.toggle("accepted", this.tncAccepted);
     }
@@ -640,12 +642,6 @@ class Game {
     closeTncOverlay() {
         $("tnc-overlay")?.classList.add("hidden");
         this.syncTncUi();
-    }
-
-    acceptTnc() {
-        if (!this.tncAccepted) return;
-        this.closeTncOverlay();
-        this.showScreen("message");
     }
 
     goHome() {
@@ -1128,12 +1124,14 @@ class Game {
 
     catchItem(item) {
         this.combo += 1;
+        const comboNow = this.comboMultiplier(this.combo);
         const base = item.def.points || CONFIG.catchPoints;
-        const points = roundScore(base * this.comboMultiplier(this.combo));
+        const points = roundScore(base * comboNow);
         this.applyScore(points, item.x + item.size / 2, item.y, item.def.glow, true);
         this.stats[item.def.id] += 1;
         this.basketGlow = 0.55;
-        this.showPointToast(item, true, points, this.combo);
+        this.showPointToast(item, true, points, comboNow);
+        if (comboNow >= (CONFIG.comboMax || 5)) this.combo = 0;
     }
 
     missItem(item) {
